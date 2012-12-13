@@ -21,7 +21,8 @@ var RV = (function () {
     // fix browser css shit
     _.extend(document.body.style, {
       margin: 0,
-      padding: 0
+      padding: 0,
+      backgroundColor: '#000'
     });
 
     // insert the canvas
