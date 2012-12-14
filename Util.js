@@ -1,5 +1,5 @@
 (function () {
-  var me = Util = RV.Util = {};
+  var me = window._ = Util = RV.Util = {};
 
 
   /**

@@ -2,12 +2,14 @@
 var RV = (function () {
   var me = {},
 
-      _,
-
       ALL_THE_THINGS = [
-        'Util',
-        'canvas'
+        'canvas',
+        'hud',
+        'Util'
       ];
+
+  // debug status
+  me.DEBUG = true;
 
   require(ALL_THE_THINGS);
 
@@ -15,9 +17,6 @@ var RV = (function () {
    * initialize the html centric stuff
    */
   me.init = function () {
-    // set up the globals
-    _ = RV.Util;
-
     // fix browser css shit
     _.extend(document.body.style, {
       margin: 0,
@@ -40,10 +39,14 @@ var RV = (function () {
 
     // init the important classes
     me.Canvas.init(canvas);
+
+    if (me.DEBUG) {
+      me.Hud.init();
+    }
   };
 
   return me;
 }());
 
-window.onload = RV.init;
+window.addEventListener('load', RV.init);
 
