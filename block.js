@@ -34,9 +34,18 @@
     return _.create(me);
   };
 
+  // extendable methods
   me.setSrc = function (src) {
-    me.image = new Image;
-    me.image.src = src;
+    this.image = new Image;
+    this.image.src = src;
+  };
+
+  me.move = function (vector) {
+    //TODO efficient?
+    this.location = {
+      x: this.location.x + vector[0],
+      y: this.location.y + vector[1]
+    };
   };
 
 }());
