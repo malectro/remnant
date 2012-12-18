@@ -7,6 +7,7 @@ var RV = (function () {
         'map',
         'block',
         'canvas',
+        'controller',
         'hud',
         'Util'
       ];
@@ -42,6 +43,7 @@ var RV = (function () {
 
     // init the important classes
     me.Canvas.init(canvas);
+    me.Controller.init();
 
     if (me.DEBUG) {
       me.Hud.init();

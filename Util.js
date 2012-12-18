@@ -100,5 +100,10 @@
     return new Date - 0;
   };
 
+
+  /**
+   * ARRAY METHODS
+   */
+
 }());
 
