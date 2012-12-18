@@ -8,6 +8,9 @@
       // debug stuff
       _paintTime = 0;
 
+  me.viewport = [
+    0, 0, 0, 0
+  ];
 
   var requestAnimationFrame =
     window.requestAnimationFrame ||
@@ -25,16 +28,27 @@
       height: document.height,
       width: document.width
     });
+
+    me.viewport = [
+      me.viewport[0], me.viewport[1], document.width, document.height
+    ];
   }
 
   var _hudWrite = _.throttle(RV.Hud.write, 200);
 
   function _draw() {
-    //_ctx.clearRect(0, 0, )
+    var blocks = RV.Map.getBlocksInViewport(me.viewport),
+        block;
 
-    //test
-    _ctx.setFillColor('blue');
-    _ctx.fillRect(10, 10, 10, 10);
+    // also paint OUR HERO
+    blocks.push(RV.Hero);
+
+    _ctx.clearRect(0, 0, me.viewport[2], me.viewport[3]);
+
+    for (var i = 0, l = blocks.length; i < l; i++) {
+      block = blocks[i];
+      _ctx.drawImage(block.image, block.location.x, block.location.y, block.size.w, block.size.h);
+    }
 
     if (_animating) {
       requestAnimationFrame(_draw, _canvas);
