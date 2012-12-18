@@ -2,8 +2,8 @@
   var me = RV.Block = {},
 
       GRAVITY = 0.3,
-      FRICTION = 0.2,
-      MIN_FLOAT_LENGTH = 3;
+      FRICTION = 0.1,
+      MIN_VELOCITY = 2;
 
   me.location = {
     x: 0,
@@ -59,16 +59,24 @@
     };
   };
 
-  me.tick = function () {
+  me.tick = function (delta) {
+    this.location.x += this.velocity.x * delta;
+    this.location.y += this.velocity.y * delta;
+
     if (this.velocity.y !== 0) {
 
     }
     else if (this.velocity.x !== 0) {
-      this.velocity.x = this.velocity.x * FRICTION;
+      this.velocity.x = this.velocity.x * Math.pow(FRICTION, delta);
     }
 
-    this.velocity.x = this.velocity.x.toFixed(MIN_FLOAT_LENGTH);
-    this.velocity.y = this.velocity.y.toFixed(MIN_FLOAT_LENGTH);
+    if (this.velocity.x < MIN_VELOCITY && this.velocity.x > -MIN_VELOCITY) {
+      this.velocity.x = 0;
+    }
+
+    if (this.velocity.y < MIN_VELOCITY && this.velocity.y > -MIN_VELOCITY) {
+      this.velocity.y = 0;
+    }
   };
 
 }());

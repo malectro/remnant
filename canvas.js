@@ -38,16 +38,21 @@
 
   function _draw() {
     var blocks = RV.Map.getBlocksInViewport(me.viewport),
-        block;
+        block,
+        now = _.now(),
+        delta = now - _paintTime,
+        fps = 1000 / delta;
 
-    // also paint OUR HERO
-    blocks.push(RV.Hero);
+    delta = delta / 1000;
 
-    _ctx.clearRect(0, 0, me.viewport[2], me.viewport[3]);
+    _paintTime = now;
+
+    //_ctx.clearRect(0, 0, me.viewport[2], me.viewport[3]);
 
     for (var i = 0, l = blocks.length; i < l; i++) {
       block = blocks[i];
       _ctx.drawImage(block.image, block.location.x, block.location.y, block.size.w, block.size.h);
+      block.tick(delta);
     }
 
     if (_animating) {
@@ -56,8 +61,7 @@
 
     if (RV.DEBUG) {
       // record fps
-      _hudWrite((1000 / (_.now() - _paintTime)).toFixed(3) + ' fps');
-      _paintTime = _.now();
+      _hudWrite(fps.toFixed(3) + ' fps<br />' + delta.toFixed(6) + ' ms');
     }
   }
 

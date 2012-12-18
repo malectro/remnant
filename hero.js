@@ -22,12 +22,13 @@
 
   me.init = function () {
     RV.Controller.listen('left', function () {
-      me.move([-10, 0]);
+      me.accel([-10, 0]);
     });
 
     RV.Controller.listen('right', function () {
-      me.move([10, 0]);
+      me.accel([10, 0]);
     });
   };
 
 }());
+
