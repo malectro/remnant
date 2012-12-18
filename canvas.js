@@ -42,7 +42,7 @@
 
     if (RV.DEBUG) {
       // record fps
-      _hudWrite((1000 / (_.now() - _paintTime)) + 'fps');
+      _hudWrite((1000 / (_.now() - _paintTime)).toFixed(3) + ' fps');
       _paintTime = _.now();
     }
   }

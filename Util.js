@@ -97,7 +97,7 @@
    * UTILILTY METHODS
    */
   me.now = function () {
-    return new Date + 0;
+    return new Date - 0;
   };
 
 }());
