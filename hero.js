@@ -29,6 +29,10 @@
       me.accel([10, 0]);
     });
 
+    RV.Controller.listen('jump', function () {
+      me.accel([0, -40]);
+    });
+
     RV.Map.addBlock(me);
   };
 
