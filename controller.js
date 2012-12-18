@@ -17,7 +17,9 @@
       };
 
   function _keydown(e) {
-    me.fire(_pcKeys[e.which]);
+    if (me.fire(_pcKeys[e.which])) {
+      e.preventDefault();
+    }
   }
 
   me.fire = function (event) {
@@ -26,6 +28,7 @@
       for (var i = 0, l = funcs.length; i < l; i++) {
         funcs[i]();
       }
+      return true;
     }
   };
 

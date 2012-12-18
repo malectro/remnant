@@ -44,6 +44,7 @@ var RV = (function () {
     // init the important classes
     me.Canvas.init(canvas);
     me.Controller.init();
+    me.Map.load();
     me.Hero.init();
 
     if (me.DEBUG) {

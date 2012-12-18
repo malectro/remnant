@@ -1,7 +1,7 @@
 (function () {
   var me = RV.Block = {},
 
-      GRAVITY = 0.3,
+      GRAVITY = 40,
       FRICTION = 0.1,
       MIN_VELOCITY = 2;
 
@@ -28,7 +28,7 @@
 
   // the block's texture
   me.image = new Image;
-  me.image.src = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAAKElEQVQ4T2NkoDJgpLJ5DKMGUh6io2E4GoZkhMBosiEj0NC0jMAwBABIxgAVO+SUsAAAAABJRU5ErkJggg==';
+  me.image.src = 'test.png';
 
   // the block's animated images
   me.images = [];
@@ -60,23 +60,49 @@
   };
 
   me.tick = function (delta) {
+    if (this.isStatic) {
+      return;
+    }
+
+    var blocks = RV.Map.blocks;
+
     this.location.x += this.velocity.x * delta;
+
+    for (var i = 0, l = blocks.length; i < l; i++) {
+      if (this.intersects(blocks[i])) {
+        this.location.x = blocks[i].location.x - this.size.w;
+        this.velocity.x = 0;
+      }
+    }
+
     this.location.y += this.velocity.y * delta;
 
-    if (this.velocity.y !== 0) {
-
+    for (var i = 0, l = blocks.length; i < l; i++) {
+      if (this.intersects(blocks[i])) {
+        this.location.y = blocks[i].location.y - this.size.h;
+        this.velocity.y = 0;
+      }
     }
-    else if (this.velocity.x !== 0) {
+
+    if (this.velocity.y === 0) {
       this.velocity.x = this.velocity.x * Math.pow(FRICTION, delta);
     }
+    this.velocity.y += GRAVITY * delta;
 
     if (this.velocity.x < MIN_VELOCITY && this.velocity.x > -MIN_VELOCITY) {
       this.velocity.x = 0;
     }
+  };
 
-    if (this.velocity.y < MIN_VELOCITY && this.velocity.y > -MIN_VELOCITY) {
-      this.velocity.y = 0;
+  me.intersects = function (block) {
+    if (this !== block
+        && block.location.y < this.location.y + this.size.h
+        && block.location.y + block.size.h > this.location.y
+        && block.location.x < this.location.x + this.size.w
+        && block.location.x + block.size.w > this.location.x) {
+      return true;
     }
+    return false;
   };
 
 }());

@@ -16,7 +16,7 @@
     y: 0
   };
 
-  me.static = false;
+  me.isStatic = false;
 
   me.setSrc('http://raveghost.com/discoghost.gif');
 
@@ -28,6 +28,8 @@
     RV.Controller.listen('right', function () {
       me.accel([10, 0]);
     });
+
+    RV.Map.addBlock(me);
   };
 
 }());
