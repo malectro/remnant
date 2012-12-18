@@ -1,5 +1,9 @@
 (function () {
-  var me = RV.Block = {};
+  var me = RV.Block = {},
+
+      GRAVITY = 0.3,
+      FRICTION = 0.2,
+      MIN_FLOAT_LENGTH = 3;
 
   me.location = {
     x: 0,
@@ -46,6 +50,25 @@
       x: this.location.x + vector[0],
       y: this.location.y + vector[1]
     };
+  };
+
+  me.accel = function (vector) {
+    this.velocity = {
+      x: this.velocity.x + vector[0],
+      y: this.velocity.y + vector[1]
+    };
+  };
+
+  me.tick = function () {
+    if (this.velocity.y !== 0) {
+
+    }
+    else if (this.velocity.x !== 0) {
+      this.velocity.x = this.velocity.x * FRICTION;
+    }
+
+    this.velocity.x = this.velocity.x.toFixed(MIN_FLOAT_LENGTH);
+    this.velocity.y = this.velocity.y.toFixed(MIN_FLOAT_LENGTH);
   };
 
 }());
