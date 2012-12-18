@@ -3,6 +3,9 @@ var RV = (function () {
   var me = {},
 
       ALL_THE_THINGS = [
+        'hero',
+        'map',
+        'block',
         'canvas',
         'hud',
         'Util'

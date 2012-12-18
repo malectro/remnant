@@ -51,6 +51,12 @@
     _canvas = canvas;
     _ctx = canvas.getContext('2d');
 
+    if (RV.DEBUG) {
+      // give global access to the canvas
+      window.canvas = _canvas;
+      window.ctx = _ctx;
+    }
+
     _resize();
     window.addEventListener('resize', _.debounce(_resize, 100));
 
