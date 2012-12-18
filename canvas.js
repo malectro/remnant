@@ -47,7 +47,7 @@
 
     _paintTime = now;
 
-    //_ctx.clearRect(0, 0, me.viewport[2], me.viewport[3]);
+    _ctx.clearRect(0, 0, me.viewport[2], me.viewport[3]);
 
     for (var i = 0, l = blocks.length; i < l; i++) {
       block = blocks[i];
