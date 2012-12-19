@@ -64,13 +64,24 @@
       return;
     }
 
-    var blocks = RV.Map.blocks;
+    var blocks = RV.Map.blocks,
+        wasBlocked = false;
 
-    this.location.x += this.velocity.x * delta;
+    if (this.velocity.x !== 0) {
+      this.location.x += this.velocity.x * delta;
 
-    for (var i = 0, l = blocks.length; i < l; i++) {
-      if (this.intersects(blocks[i])) {
-        this.location.x = blocks[i].location.x - this.size.w;
+      for (var i = 0, l = blocks.length; i < l; i++) {
+        if (this.intersects(blocks[i])) {
+          if (this.velocity.x > 0) {
+            this.location.x = blocks[i].location.x - this.size.w;
+          }
+          else {
+            this.location.x = blocks[i].location.x + blocks[i].size.w;
+          }
+          wasBlocked = true;
+        }
+      }
+      if (wasBlocked) {
         this.velocity.x = 0;
       }
     }
