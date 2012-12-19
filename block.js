@@ -23,6 +23,10 @@
   // is the block affected by physics?
   me.isStatic = true;
 
+  // can blocks move through this block moving in
+  // the -y direction? useful for platforms.
+  me.isYPositive = true;
+
   // is the block animated?
   me.isSprite = false;
 
@@ -65,33 +69,69 @@
     }
 
     var blocks = RV.Map.blocks,
+        tempBlocks = [],
+        block,
         wasBlocked = false;
+
 
     if (this.velocity.x !== 0) {
       this.location.x += this.velocity.x * delta;
 
       for (var i = 0, l = blocks.length; i < l; i++) {
-        if (this.intersects(blocks[i])) {
-          if (this.velocity.x > 0) {
-            this.location.x = blocks[i].location.x - this.size.w;
+        block = blocks[i];
+        if (this.intersects(block)) {
+          if (!block.isYPositive) {
+            if (this.velocity.x > 0) {
+              this.location.x = block.location.x - this.size.w;
+            }
+            else {
+              this.location.x = block.location.x + block.size.w;
+            }
+            wasBlocked = true;
+            tempBlocks.push(block);
           }
-          else {
-            this.location.x = blocks[i].location.x + blocks[i].size.w;
-          }
-          wasBlocked = true;
+        }
+        else {
+          tempBlocks.push(block);
         }
       }
+
       if (wasBlocked) {
         this.velocity.x = 0;
+        wasBlocked = false;
+      }
+    }
+    else {
+      for (var i = 0, l = blocks.length; i < l; i++) {
+        block = blocks[i];
+        if (!this.intersects(block)) {
+          tempBlocks.push(block);
+        }
       }
     }
 
-    this.location.y += this.velocity.y * delta;
+    blocks = tempBlocks;
 
-    for (var i = 0, l = blocks.length; i < l; i++) {
-      if (this.intersects(blocks[i])) {
-        this.location.y = blocks[i].location.y - this.size.h;
+    if (this.velocity.y !== 0) {
+      this.location.y += this.velocity.y * delta;
+
+      for (var i = 0, l = blocks.length; i < l; i++) {
+        block = blocks[i];
+        if (this.intersects(block)) {
+          if (this.velocity.y > 0) {
+            this.location.y = block.location.y - this.size.h;
+            wasBlocked = true;
+          }
+          else if (!block.isYPositive) {
+            this.location.y = block.location.y + block.size.h;
+            wasBlocked = true;
+          }
+        }
+      }
+
+      if (wasBlocked) {
         this.velocity.y = 0;
+        wasBlocked = false;
       }
     }
 

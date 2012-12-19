@@ -3,7 +3,7 @@
 
   me.location = {
     x: 0,
-    y: 0
+    y: 10
   };
 
   me.size = {
