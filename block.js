@@ -3,7 +3,8 @@
 
       GRAVITY = 40,
       FRICTION = 0.1,
-      MIN_VELOCITY = 2;
+      MIN_VELOCITY = 2,
+      TERMINAL_VELOCITY = 20;
 
   me.location = {
     x: 0,
@@ -112,6 +113,8 @@
 
     blocks = tempBlocks;
 
+    this.velocity.y += GRAVITY * delta;
+
     if (this.velocity.y !== 0) {
       this.location.y += this.velocity.y * delta;
 
@@ -138,10 +141,19 @@
     if (this.velocity.y === 0) {
       this.velocity.x = this.velocity.x * Math.pow(FRICTION, delta);
     }
-    this.velocity.y += GRAVITY * delta;
 
     if (this.velocity.x < MIN_VELOCITY && this.velocity.x > -MIN_VELOCITY) {
       this.velocity.x = 0;
+    }
+
+  };
+
+  me.capVelocity = function () {
+    if (this.velocity.y > TERMINAL_VELOCITY) {
+      this.velocity.y = TERMINAL_VELOCITY;
+    }
+    else if (this.velocity.y < -TERMINAL_VELOCITY) {
+      this.velocity.y = -TERMINAL_VELOCITY;
     }
   };
 

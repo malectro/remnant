@@ -22,15 +22,21 @@
 
   me.init = function () {
     RV.Controller.listen('left', function () {
-      me.accel([-10, 0]);
+      if (me.velocity.y === 0) {
+        me.accel([-10, 0]);
+      }
     });
 
     RV.Controller.listen('right', function () {
-      me.accel([10, 0]);
+      if (me.velocity.y === 0) {
+        me.accel([10, 0]);
+      }
     });
 
     RV.Controller.listen('jump', function () {
-      me.accel([0, -40]);
+      if (me.velocity.y === 0) {
+        me.accel([0, -40]);
+      }
     });
 
     RV.Map.addBlock(me);
