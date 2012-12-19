@@ -5,8 +5,9 @@
   ];
 
   var _testBlocks = [
-    [0, 40, 200, 10],
-    [100, 30, 10, 10]
+    [0, 100, 400, 30, true],
+    [100, 60, 10, 10, false],
+    [200, 70, 50, 10, true]
   ];
 
   me.load = function () {
@@ -20,6 +21,7 @@
         w: block[2],
         h: block[3]
       };
+      block2.isYPositive = block[4];
       me.addBlock(block2);
     });
   };
