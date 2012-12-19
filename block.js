@@ -1,8 +1,8 @@
 (function () {
   var me = RV.Block = {},
 
-      GRAVITY = 40,
-      FRICTION = 0.1,
+      GRAVITY = 200,
+      FRICTION = 0.4,
       MIN_VELOCITY = 2,
       TERMINAL_VELOCITY = 20;
 
@@ -64,6 +64,10 @@
     };
   };
 
+  me.resolveInputs = function () {
+
+  };
+
   me.tick = function (delta) {
     if (this.isStatic) {
       return;
@@ -74,6 +78,8 @@
         block,
         wasBlocked = false;
 
+    // resolve user action
+    this.resolveInputs(delta);
 
     if (this.velocity.x !== 0) {
       this.location.x += this.velocity.x * delta;

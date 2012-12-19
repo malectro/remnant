@@ -19,30 +19,21 @@
       };
 
   function _keydown(e) {
-    if (me.fire(_pcKeys[e.which])) {
+    if (me.fire(_pcKeys[e.which], 'down')) {
       e.preventDefault();
     }
   }
 
   function _keyup(e) {
-    if (me.cancel(_pcKeys[e.which])) {
+    if (me.fire(_pcKeys[e.which], 'up')) {
       e.preventDefault();
     }
   }
 
-  me.fire = function (event) {
-    var funcs = _eventHash[event].down;
-    if (funcs) {
-      for (var i = 0, l = funcs.length; i < l; i++) {
-        funcs[i]();
-      }
-      return true;
-    }
-  };
-
-  me.cancel = function () {
-    var funcs = _eventHash[event].up;
-    if (funcs) {
+  me.fire = function (eventName, state) {
+    var event = _eventHash[eventName];
+    if (event) {
+      var funcs = event[state];
       for (var i = 0, l = funcs.length; i < l; i++) {
         funcs[i]();
       }

@@ -1,5 +1,9 @@
 (function () {
-  var me = RV.Hero = _.create(RV.Block);
+  var me = RV.Hero = _.create(RV.Block),
+
+      RUN_SPEED = 300,
+      JUMP_SPEED = -4000,
+      FLOAT_SPEED = -100;
 
   me.location = {
     x: 0,
@@ -20,23 +24,53 @@
 
   me.setSrc('http://raveghost.com/discoghost.gif');
 
+  me.resolveInputs = function (delta) {
+    if (me.jumping) {
+      if (me.velocity.y === 0) {
+        me.accel([0, JUMP_SPEED * delta]);
+      }
+      else {
+        me.accel([0, FLOAT_SPEED * delta]);
+      }
+    }
+
+    if (me.moving) {
+      if (me.velocity.y === 0) {
+        me.accel([me.moving * delta, 0]);
+      }
+      else {
+        me.accel([me.moving * delta, 0]);
+      }
+    }
+  };
+
   me.init = function () {
     RV.Controller.listen('left', 'down', function () {
-      if (me.velocity.y === 0) {
-        me.accel([-10, 0]);
+      me.moving = -RUN_SPEED;
+    });
+    RV.Controller.listen('left', 'up', function () {
+      if (me.moving === -RUN_SPEED) {
+        me.moving = 0;
       }
     });
 
     RV.Controller.listen('right', 'down', function () {
-      if (me.velocity.y === 0) {
-        me.accel([10, 0]);
+      console.log('hi');
+      me.moving = RUN_SPEED;
+    });
+    RV.Controller.listen('right', 'up', function () {
+      if (me.moving === RUN_SPEED) {
+        me.moving = 0;
       }
     });
 
     RV.Controller.listen('jump', 'down', function () {
       if (me.velocity.y === 0) {
-        me.accel([0, -40]);
+        me.jumping = true;
       }
+    });
+    RV.Controller.listen('jump', 'up', function () {
+      me.jumping = false;
     });
 
     RV.Map.addBlock(me);
