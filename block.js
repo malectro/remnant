@@ -2,9 +2,10 @@
   var me = RV.Block = {},
 
       GRAVITY = 200,
-      FRICTION = 0.4,
-      MIN_VELOCITY = 2,
-      TERMINAL_VELOCITY = 20;
+      FRICTION = 0.0001,
+      MIN_VELOCITY = 5,
+      TERMINAL_VELOCITY = 400,
+      TERMINAL_VELOCITY_X = 100;
 
   me.location = {
     x: 0,
@@ -20,6 +21,9 @@
     x: 0,
     y: 0
   };
+
+  me.friction = FRICTION;
+  me.moving = 0;
 
   // is the block affected by physics?
   me.isStatic = true;
@@ -145,13 +149,14 @@
     }
 
     if (this.velocity.y === 0) {
-      this.velocity.x = this.velocity.x * Math.pow(FRICTION, delta);
+      this.velocity.x = this.velocity.x * Math.pow(this.friction + FRICTION, delta);
     }
 
     if (this.velocity.x < MIN_VELOCITY && this.velocity.x > -MIN_VELOCITY) {
       this.velocity.x = 0;
     }
 
+    this.capVelocity();
   };
 
   me.capVelocity = function () {
@@ -160,6 +165,12 @@
     }
     else if (this.velocity.y < -TERMINAL_VELOCITY) {
       this.velocity.y = -TERMINAL_VELOCITY;
+    }
+    if (this.velocity.x > TERMINAL_VELOCITY_X) {
+      this.velocity.x = TERMINAL_VELOCITY_X;
+    }
+    else if (this.velocity.x < -TERMINAL_VELOCITY_X) {
+      this.velocity.x = -TERMINAL_VELOCITY_X;
     }
   };
 

@@ -1,7 +1,9 @@
 (function () {
   var me = RV.Hero = _.create(RV.Block),
 
+      RUN_FRICTION = 0.9,
       RUN_SPEED = 300,
+      STOP_FRICTION = 0,
       JUMP_SPEED = -4000,
       FLOAT_SPEED = -100;
 
@@ -47,20 +49,23 @@
   me.init = function () {
     RV.Controller.listen('left', 'down', function () {
       me.moving = -RUN_SPEED;
+      me.friction = RUN_FRICTION;
     });
     RV.Controller.listen('left', 'up', function () {
       if (me.moving === -RUN_SPEED) {
         me.moving = 0;
+        me.friction = STOP_FRICTION;
       }
     });
 
     RV.Controller.listen('right', 'down', function () {
-      console.log('hi');
       me.moving = RUN_SPEED;
+      me.friction = RUN_FRICTION;
     });
     RV.Controller.listen('right', 'up', function () {
       if (me.moving === RUN_SPEED) {
         me.moving = 0;
+        me.friction = STOP_FRICTION;
       }
     });
 
