@@ -21,19 +21,19 @@
   me.setSrc('http://raveghost.com/discoghost.gif');
 
   me.init = function () {
-    RV.Controller.listen('left', function () {
+    RV.Controller.listen('left', 'down', function () {
       if (me.velocity.y === 0) {
         me.accel([-10, 0]);
       }
     });
 
-    RV.Controller.listen('right', function () {
+    RV.Controller.listen('right', 'down', function () {
       if (me.velocity.y === 0) {
         me.accel([10, 0]);
       }
     });
 
-    RV.Controller.listen('jump', function () {
+    RV.Controller.listen('jump', 'down', function () {
       if (me.velocity.y === 0) {
         me.accel([0, -40]);
       }

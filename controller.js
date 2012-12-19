@@ -1,11 +1,13 @@
 (function (document) {
   var me = RV.Controller = {},
 
+      EVENT_INTERVAL = 20,
+
       _events = [
         'left', 'up', 'down', 'right', 'jump'
       ],
 
-      _eventFuncs = {},
+      _eventHash = {},
 
       // PC controller events
       _pcKeys = {
@@ -22,8 +24,14 @@
     }
   }
 
+  function _keyup(e) {
+    if (me.cancel(_pcKeys[e.which])) {
+      e.preventDefault();
+    }
+  }
+
   me.fire = function (event) {
-    var funcs = _eventFuncs[event];
+    var funcs = _eventHash[event].down;
     if (funcs) {
       for (var i = 0, l = funcs.length; i < l; i++) {
         funcs[i]();
@@ -32,25 +40,39 @@
     }
   };
 
-  me.listen = function (event, func) {
-    if (_eventFuncs[event].indexOf(func) < 0) {
-      _eventFuncs[event].push(func);
+  me.cancel = function () {
+    var funcs = _eventHash[event].up;
+    if (funcs) {
+      for (var i = 0, l = funcs.length; i < l; i++) {
+        funcs[i]();
+      }
+      return true;
     }
   };
 
-  me.forget = function (event, func) {
-    var index = _eventFuncs[event].indexOf(func);
+  me.listen = function (event, type, func) {
+    if (_eventHash[event][type].indexOf(func) < 0) {
+      _eventHash[event][type].push(func);
+    }
+  };
+
+  me.forget = function (event, type, func) {
+    var index = _eventHash[event][type].indexOf(func);
     if (index >= 0) {
-      _eventFuncs[event].splice(index, 1);
+      _eventHash[event][type].splice(index, 1);
     }
   };
 
   me.init = function () {
     _events.forEach(function (event) {
-      _eventFuncs[event] = [];
+      _eventHash[event] = {
+        down: [],
+        up: []
+      };
     });
 
     document.body.addEventListener('keydown', _keydown);
+    document.body.addEventListener('keyup', _keyup);
   };
 
 }(document));
