@@ -26,7 +26,6 @@
     };
 
 
-
   function _resize() {
     _.extend(_canvas, {
       height: document.height,
@@ -59,7 +58,7 @@
 
     for (var i = 0, l = blocks.length; i < l; i++) {
       block = blocks[i];
-      _ctx.drawImage(block.image, block.location.x - me.viewport[0], block.location.y - me.viewport[1], block.size.w, block.size.h);
+      _drawWarped(block.image, block.location.x - me.viewport[0], block.location.y - me.viewport[1], block.size.w, block.size.h);
       block.tick(delta);
     }
 
@@ -73,6 +72,16 @@
       // record fps
       _hudWrite(fps.toFixed(3) + ' fps<br />' + delta.toFixed(6) + ' ms');
     }
+  }
+
+  function _drawWarped(image, x, y, w, h) {
+    var warp = RV.Map.warp;
+
+    if (false && warp) {
+      dimensions = warp.warp(x, y, w, h);
+    }
+
+    _ctx.drawImage(image, dimensions.x, dimensions.y, dimensions.w, dimensions.h);
   }
 
   me.adjustViewport = function () {
