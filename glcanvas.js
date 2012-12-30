@@ -2,10 +2,13 @@
   var me = Canvas = RV.Canvas = {},
 
       VIEWPORT_PADDING = 100,
+      SHADERS = ['2d.frag', '2d.vert'],
 
       _canvas,
       _ctx,
       _animating = false,
+
+      _shaders = {},
 
       _paintTime = 0,
       _viewportFrame = {
@@ -25,6 +28,39 @@
       setTimeout(func, 20);
     };
 
+  function _loadShader(name, params) {
+    var key = JSON.stringify(params),
+        shader = _shaders[name],
+        program = shader.programs[key];
+
+    if (!program) {
+      program = _ctx.createShader(shader.type);
+      
+    }
+  }
+
+  function _loadShaders() {
+    var shaderTypes = {
+      'x-fragment': _ctx.FRAGMENT_SHADER,
+      'x-vertex': _ctx.VERTEX_SHADER
+    };
+
+    _.each(document.getElementsByTagName('script'), function (script) {
+      if (script.type.split('/')[0] === 'x-shader') {
+        var name = script.id.split('-')[1],
+            type = script.type.split('/')[1];
+
+        if (type = shaderTypes[type]) {
+          _shaders[name] = {
+            raw: _.text(script),
+            type: type,
+            programs: {}
+          };
+        }
+      }
+    });
+  }
+
 
   function _resize() {
     _.extend(_canvas, {
@@ -38,7 +74,6 @@
 
     me.viewport[4] = document.width / 2 + me.viewport[0];
     me.viewport[5] = document.height / 2 + me.viewport[1];
-
   }
 
   var _hudWrite = _.throttle(RV.Hud.write, 200);
@@ -124,6 +159,8 @@
   me.init = function (canvas) {
     _canvas = canvas;
     _ctx = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+
+    _loadShaders();
 
     if (RV.DEBUG) {
       // give global access to the canvas

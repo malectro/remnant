@@ -21,7 +21,16 @@ if (typeof require !== 'function') {
             script = document.createElement('script'),
             firstScript = document.getElementsByTagName('script')[0];
 
-        script.src = path + '.js';
+        if (typeof path === 'object') {
+          script.type = path[1];
+          path = path[0];
+        }
+
+        if (path.indexOf('.') < 0) {
+          path += '.js';
+        }
+        script.src = path;
+
         firstScript.parentNode.insertBefore(script, firstScript);
       }
     };

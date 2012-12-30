@@ -3,7 +3,7 @@
 attribute vec4 aVertexPosition;
 
 #if hasTexture
-varying vec2 vTextureCoord;
+  varying vec2 vTextureCoord;
 #endif
 
 uniform vec4 uColor;

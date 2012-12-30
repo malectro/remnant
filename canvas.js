@@ -16,6 +16,7 @@
     0, 0, 0, 0, 0, 0
   ];
 
+  // animation frame shim
   var requestAnimationFrame =
     window.requestAnimationFrame ||
     window.webkitRequestAnimationFrame ||

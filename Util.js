@@ -105,9 +105,67 @@
    * MATH
    */
 
+
   /**
-   * ARRAY METHODS
+   * STRING METHODS
    */
+
+  /**
+   * stamp
+   * replace variables in a string with the contents
+   * of an object
+   */
+  me.stamp = function (string, object) {
+    var newString = string;
+
+    for (var i in object) {
+      newString = newString.replace(i, object[i]);
+    }
+
+    return newString;
+  };
+
+
+  /**
+   * LIST METHODS
+   */
+
+  /**
+   * last
+   * get the last element in an array
+   */
+  me.last = function (arr) {
+    return arr[arr.length - 1];
+  };
+
+  /**
+   * each
+   */
+  me.each = function (arr, func) {
+    Array.prototype.forEach.call(arr, func);
+  };
+
+
+  /**
+   * DOM METHODS
+   */
+
+  /**
+   * text
+   * get the inner text of a node
+   */
+  me.text = function (node) {
+    var text = '',
+        children = node.childNodes;
+
+    for (var i = 0, l = children.length; i < l; i++) {
+      if (children[i].nodeType === node.TEXT_NODE) {
+        text += children[i].textContent;
+      }
+    }
+
+    return text;
+  };
 
 }());
 
