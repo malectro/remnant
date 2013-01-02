@@ -76,13 +76,14 @@
   }
 
   function _drawWarped(image, x, y, w, h) {
-    var warp = RV.Map.warp;
+    var warp = RV.Map.warp,
+        dimensions;
 
     if (false && warp) {
       dimensions = warp.warp(x, y, w, h);
     }
 
-    _ctx.drawImage(image, dimensions.x, dimensions.y, dimensions.w, dimensions.h);
+    _ctx.drawImage(image, x, y, w, h);
   }
 
   me.adjustViewport = function () {

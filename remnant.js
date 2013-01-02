@@ -6,7 +6,7 @@ var RV = (function () {
         'hero',
         'map',
         'block',
-        'glcanvas',
+        'canvas',
         'controller',
         'hud',
         'Util'
