@@ -105,6 +105,14 @@
    * MATH
    */
 
+  /**
+   * powerOf2
+   * test if the number is a power of 2
+   */
+  me.powerOf2 = function (number) {
+    return number > 0 && ((number - 1) & number === 0);
+  }
+
 
   /**
    * STRING METHODS
@@ -119,7 +127,7 @@
     var newString = string;
 
     for (var i in object) {
-      newString = newString.replace(i, object[i]);
+      newString = newString.replace(new RegExp(i, "g"), object[i]);
     }
 
     return newString;

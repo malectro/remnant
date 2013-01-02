@@ -4,11 +4,17 @@
       VIEWPORT_PADDING = 100,
       SHADERS = ['2d.frag', '2d.vert'],
 
+      mat3 = RV.Matrix.mat3,
+      vec3 = RV.Matrix.vec3,
+
       _canvas,
       _ctx,
       _animating = false,
 
       _shaders = {},
+      _shaderProgram,
+
+      _textures = {},
 
       _paintTime = 0,
       _viewportFrame = {
@@ -28,15 +34,80 @@
       setTimeout(func, 20);
     };
 
+  (function () {
+    var me = Canvas.Transform = {},
+
+        MAX_DEPTH = 16;
+
+    me.clear = function () {
+      me.stack = [];
+      me.cache = [];
+      me.count = 0;
+      me.valid = 0;
+      me.result = null;
+
+      for (var i = 0; i < MAX_DEPTH; i++) {
+        me.stack[i] = mat3.identity;
+      }
+
+      me.setIdentity();
+    };
+
+    me.setIdentity = function () {
+      me.stack[me.count] = mat3.identity;
+      if (me.valid === me.count && me.count) {
+        me.valid--;
+      }
+    };
+
+    me.getResult = function () {
+      if (!me.count) {
+        return me.stack[0];
+      }
+    };
+
+    me.push = function () {
+      me.count++;
+      me.stack[me.count] = mat3.identity;
+    };
+
+    me.pop = function () {
+      if (me.count) {
+        me.count--;
+      }
+    }
+
+  }());
+
+  function _shaderStamp(raw, params) {
+    var ob = {};
+
+    for (var i in params) {
+      ob['\\$' + i] = params[i];
+    }
+
+    return _.stamp(raw, ob);
+  }
+
   function _loadShader(name, params) {
     var key = JSON.stringify(params),
-        shader = _shaders[name],
-        program = shader.programs[key];
+        shaderInfo = _shaders[name],
+        shader = shaderInfo.programs[key];
 
-    if (!program) {
-      program = _ctx.createShader(shader.type);
-      
+    if (!shader) {
+      shader = _ctx.createShader(shaderInfo.type);
+
+      _ctx.shaderSource(shader, _shaderStamp(shaderInfo.raw, params));
+      _ctx.compileShader(shader);
+
+      if (!_ctx.getShaderParameter(shader, _ctx.COMPILE_STATUS)) {
+        throw "shader '" + name + "' compilation error: " + _ctx.getShaderInfoLog(shader);
+      }
+
+      shaderInfo.programs[key] = shader;
     }
+
+    return shader;
   }
 
   function _loadShaders() {
@@ -61,6 +132,58 @@
     });
   }
 
+  function _loadDefaultShaders() {
+    var program = _shaderProgram = _ctx.createProgram();
+
+    _ctx.attachShader(program, _loadShader('main_frag', {hasTexture: '0', hasCrop: '0'}));
+    _ctx.attachShader(program, _loadShader('main_vert', {hasTexture: '0', depth: 1, w: me.viewport[2], h: me.viewport[3]}));
+
+    _ctx.linkProgram(program);
+
+    if (!_ctx.getProgramParameter(program, _ctx.LINK_STATUS)) {
+      throw "could not initialize shader program.";
+    }
+
+    _ctx.useProgram(program);
+
+    _shaderProgram.vertexPositionAttribute = _ctx.getAttribLocation(program, 'aVertexPosition');
+    _ctx.enableVertexAttribArray(program.vertexPositionAttribute);
+
+    program.uColor = _ctx.getUniformLocation(program, 'uColor');
+    program.uSampler = _ctx.getUniformLocation(program, 'uSampler');
+    program.uCropSource = _ctx.getUniformLocation(program, 'uCropSource');
+
+    //TODO: figure transform stack out laterz
+    program.uTransforms = [];
+
+    return program;
+  }
+
+  function _textureize(block) {
+    var texture = block.texture;
+
+    if (!texture) {
+      texture = _ctx.createTexture();
+
+      _ctx.bindTexture(_ctx.TEXTURE_2D, texture);
+      _ctx.texImage2D(_ctx.TEXTURE_2D, 0, _ctx.RGBA, _ctx.RGBA, _ctx.UNSIGNED_BYTE, block.image);
+      _ctx.texParameteri(_ctx.TEXTURE_2D, _ctx.TEXTURE_WRAP_S, _ctx.CLAMP_TO_EDGE);
+      _ctx.texParameteri(_ctx.TEXTURE_2D, _ctx.TEXTURE_WRAP_T, _ctx.CLAMP_TO_EDGE);
+      _ctx.texParameteri(_ctx.TEXTURE_2D, _ctx.TEXTURE_MAG_FILTER, _ctx.LINEAR);
+
+      if (_.powerOf2(block.image.width) && _.powerOf2(block.image.height)) {
+        _ctx.texParameteri(_ctx.TEXTURE_2D, _ctx.TEXTURE_MIN_FILTER, _ctx.LINEAR_MIPMAP_LINEAR);
+        _ctx.generateMipmap(_ctx.TEXTURE_2D);
+      }
+      else {
+        _ctx.texParameteri(_ctx.TEXTURE_2D, _ctx.TEXTURE_MIN_FILTER, _ctx.LINEAR);
+      }
+
+      _ctx.bindTexture(_ctx.TEXTURE_2D, null);
+    }
+
+    return texture;
+  }
 
   function _resize() {
     _.extend(_canvas, {
@@ -77,6 +200,33 @@
   }
 
   var _hudWrite = _.throttle(RV.Hud.write, 200);
+
+  function _drawBlock(block) {
+    var buffer = _ctx.createBuffer(),
+        vertices = [
+          1.0, 1.0, 0.0,
+          -1.0, 1.0, 0.0,
+          1.0, -1.0, 0.0,
+          -1.0, -1.0, 0.0
+        ];
+
+    _ctx.bindBuffer(_ctx.ARRAY_BUFFER, buffer);
+    _ctx.bufferData(_ctx.ARRAY_BUFFER, new Float32Array(vertices), _ctx.STATIC_DRAW);
+
+    _ctx.vertexAttribPointer(_shaderProgram.vertexPositionAttribute, 3, _ctx.FLOAT, false, 0, 0);
+
+    if (false && block.image) {
+      _ctx.bindTexture(_ctx.TEXTURE_2D, _textureize(block));
+      _ctx.activeTexture(_ctx.TEXTURE0);
+      _ctx.uniform1i(_shaderProgram.uSampler, 0);
+
+      _ctx.drawArrays(_ctx.TRIANGLE_STRIP, 0, 4);
+    }
+    else {
+      _ctx.uniform4f(_shaderProgram.uColor, 1, 1, 1, 1);
+      _ctx.drawArrays(_ctx.LINE_LOOP, 0, 4);
+    }
+  }
 
   function _draw() {
     var blocks = RV.Map.getBlocksInViewport(me.viewport),
@@ -160,8 +310,6 @@
     _canvas = canvas;
     _ctx = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
 
-    _loadShaders();
-
     if (RV.DEBUG) {
       // give global access to the canvas
       window.canvas = _canvas;
@@ -171,22 +319,11 @@
     _resize();
     window.addEventListener('resize', _.debounce(_resize, 100));
 
+    _loadShaders();
+    _loadDefaultShaders();
+
     //testing stuff
-    var buffer = _ctx.createBuffer(),
-        vertices = [
-          1.0, 1.0, 0.0,
-          -1.0, 1.0, 0.0,
-          1.0, -1.0, 0.0,
-          -1.0, -1.0, 0.0
-        ];
-
-    _ctx.bindBuffer(_ctx.ARRAY_BUFFER, buffer);
-    _ctx.bufferData(_ctx.ARRAY_BUFFER, new Float32Array(vertices), _ctx.STATIC_DRAW);
-
-
-    _ctx.vertexAttribPointer(vertexPositionAttribute, 3, _ctx.FLOAT, false, 0, 0);
-    _ctx.drawArrays(_ctx.TRIANGLE_STRIP, 0, 4);
-
+    _drawBlock(RV.Hero);
     //me.start();
   };
 
@@ -198,6 +335,8 @@
   me.stop = function () {
     _animating = false;
   };
+
+  shaders = _shaders;
 
 }(window));
 
