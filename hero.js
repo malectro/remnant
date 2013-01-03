@@ -78,6 +78,7 @@
       me.jumping = false;
     });
 
+    // hero will be in his own framebuffer
     RV.Map.addBlock(me);
   };
 

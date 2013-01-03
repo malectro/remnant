@@ -333,7 +333,6 @@
   function _drawBlock(block) {
     var textureBit = (block.image) ? '1' : '0';
 
-
     me.Transform.push();
 
     _loadDefaultShaders(textureBit, me.Transform.count + 1);
@@ -372,12 +371,6 @@
     }
   }
 
-  function _tickBlocks(blocks, delta) {
-    for (var i = 0, l = blocks.length; i < l; i++) {
-      blocks[i].tick(delta);
-    }
-  }
-
   function _draw() {
     var blocks = RV.Map.getBlocksInViewport(me.viewport),
         block,
@@ -391,8 +384,9 @@
 
     //_ctx.clear(_ctx.COLOR_BUFFER_BIT);
 
+    //blocks = RV.Map.allBlocks;
     _drawBlocks(blocks, delta);
-    //_tickBlocks(blocks);
+    _drawBlocks(RV.Map.heroBlocks, delta);
 
     me.adjustViewport();
 

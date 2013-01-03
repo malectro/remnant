@@ -1,8 +1,9 @@
 (function () {
   var me = RV.Map = {};
 
-  me.blocks = [
-  ];
+  me.blocks = [];
+  me.allBlocks = [];
+  me.heroBlocks = [];
 
   var _testBlocks = [
     [0, 100, 400, 30, true],
@@ -36,7 +37,13 @@
   };
 
   me.addBlock = function (block) {
-    me.blocks.push(block);
+    if (block === RV.Hero) {
+      me.heroBlocks.push(block);
+    }
+    else {
+      me.blocks.push(block);
+    }
+    me.allBlocks.push(block);
   };
 
   me.warp = (function () {

@@ -77,7 +77,7 @@
       return;
     }
 
-    var blocks = RV.Map.blocks,
+    var blocks = RV.Map.allBlocks,
         tempBlocks = [],
         block,
         wasBlocked = false;
