@@ -24,7 +24,7 @@
 
   me.isStatic = false;
 
-  me.setSrc('raveghostsprite.png');
+  me.setSrc('discoghost.gif');
 
   me.resolveInputs = function (delta) {
     if (me.jumping) {

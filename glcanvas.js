@@ -277,7 +277,7 @@
   var _hudWrite = _.throttle(RV.Hud.write, 200);
 
   function _drawBlock(block) {
-    var textureBit = (false && block.image) ? '1' : '0';
+    var textureBit = (block.image) ? '1' : '0';
 
     var buffer = _ctx.createBuffer(),
         vertices = [
@@ -296,11 +296,11 @@
 
     _ctx.vertexAttribPointer(_shaderProgram.vertexPositionAttribute, 4, _ctx.FLOAT, false, 0, 0);
 
-    me.Transform.translate(block.location.x, block.location.y);
+    me.Transform.translate(block.location.x - me.viewport[0], block.location.y - me.viewport[1]);
     me.Transform.scale(block.size.w, block.size.h);
     _sendTrans();
 
-    if (false && block.image) {
+    if (block.image) {
       _ctx.bindTexture(_ctx.TEXTURE_2D, _textureize(block));
       _ctx.activeTexture(_ctx.TEXTURE0);
       _ctx.uniform1i(_shaderProgram.uSampler, 0);
@@ -308,7 +308,6 @@
       _ctx.drawArrays(_ctx.TRIANGLE_FAN, 0, 4);
     }
     else {
-      console.log('hi', me.Transform.count + 1, me.Transform);
       _ctx.uniform4f(_shaderProgram.uColor, 1, 1, 1, 1);
       _ctx.drawArrays(_ctx.TRIANGLE_FAN, 0, 4);
     }
@@ -327,11 +326,11 @@
 
     _paintTime = now;
 
-    _ctx.clearRect(0, 0, me.viewport[2], me.viewport[3]);
+    //_ctx.clearRect(0, 0, me.viewport[2], me.viewport[3]);
 
     for (var i = 0, l = blocks.length; i < l; i++) {
       block = blocks[i];
-      _drawWarped(block.image, block.location.x - me.viewport[0], block.location.y - me.viewport[1], block.size.w, block.size.h);
+      _drawBlock(block);
       block.tick(delta);
     }
 
@@ -409,7 +408,7 @@
 
     _loadShaders();
 
-    _ctx.clearColor(1, 1, 1, 1);
+    _ctx.clearColor(0, 0, 0, 1);
     _ctx.clear(_ctx.COLOR_BUFFER_BIT);
     _ctx.colorMask(1, 1, 1, 0);
 
@@ -417,8 +416,8 @@
     _ctx.blendFunc(_ctx.SRC_ALPHA, _ctx.ONE_MINUS_SRC_ALPHA);
 
     //testing stuff
-    _drawBlock(RV.Hero);
-    //me.start();
+    //_drawBlock(RV.Hero);
+    me.start();
   };
 
   me.start = function () {
