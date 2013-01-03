@@ -16,6 +16,7 @@
       _shaderPrograms = {},
 
       _textures = {},
+      _rectBuffer,
 
       _paintTime = 0,
       _viewportFrame = {
@@ -252,6 +253,8 @@
         _ctx.texParameteri(_ctx.TEXTURE_2D, _ctx.TEXTURE_MIN_FILTER, _ctx.LINEAR);
       }
 
+      block.texture = texture;
+
       _ctx.bindTexture(_ctx.TEXTURE_2D, null);
     }
 
@@ -279,20 +282,12 @@
   function _drawBlock(block) {
     var textureBit = (block.image) ? '1' : '0';
 
-    var buffer = _ctx.createBuffer(),
-        vertices = [
-          0, 0, 0, 0,
-          0, 1.0, 0, 1.0,
-          1.0, 1.0, 1.0, 1.0,
-          1.0, 0, 1.0, 0
-        ];
 
     me.Transform.push();
 
     _loadDefaultShaders(textureBit, me.Transform.count + 1);
 
-    _ctx.bindBuffer(_ctx.ARRAY_BUFFER, buffer);
-    _ctx.bufferData(_ctx.ARRAY_BUFFER, new Float32Array(vertices), _ctx.STATIC_DRAW);
+    //_ctx.bindBuffer(_ctx.ARRAY_BUFFER, _rectBuffer);
 
     _ctx.vertexAttribPointer(_shaderProgram.vertexPositionAttribute, 4, _ctx.FLOAT, false, 0, 0);
 
@@ -326,7 +321,7 @@
 
     _paintTime = now;
 
-    //_ctx.clearRect(0, 0, me.viewport[2], me.viewport[3]);
+    _ctx.clear(_ctx.COLOR_BUFFER_BIT);
 
     for (var i = 0, l = blocks.length; i < l; i++) {
       block = blocks[i];
@@ -414,6 +409,16 @@
 
     _ctx.enable(_ctx.BLEND);
     _ctx.blendFunc(_ctx.SRC_ALPHA, _ctx.ONE_MINUS_SRC_ALPHA);
+
+    _rectBuffer = _ctx.createBuffer();
+    var vertices = [
+          0, 0, 0, 0,
+          0, 1.0, 0, 1.0,
+          1.0, 1.0, 1.0, 1.0,
+          1.0, 0, 1.0, 0
+        ];
+    _ctx.bindBuffer(_ctx.ARRAY_BUFFER, _rectBuffer);
+    _ctx.bufferData(_ctx.ARRAY_BUFFER, new Float32Array(vertices), _ctx.STATIC_DRAW);
 
     //testing stuff
     //_drawBlock(RV.Hero);
