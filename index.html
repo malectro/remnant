@@ -14,6 +14,7 @@
       #define hasTexture $hasTexture
       #define hasCrop $hasCrop
 
+      uniform float time;
       varying vec4 vColor;
 
       #if hasTexture
@@ -29,7 +30,7 @@
           #if hasCrop
             gl_FragColor = texture2D(uSampler, vec2(vTextureCoord.x * uCropSource.z, vTextureCoord.y * uCropSource.w) + uCropSource.xy);
           #else
-            gl_FragColor = texture2D(uSampler, vTextureCoord);
+            gl_FragColor = texture2D(uSampler, vec2(vTextureCoord.x, vTextureCoord.y));
           #endif
         #else
           gl_FragColor = vColor;

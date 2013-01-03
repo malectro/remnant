@@ -3,6 +3,8 @@
 
       VIEWPORT_PADDING = 100,
       SHADERS = ['2d.frag', '2d.vert'],
+      RESOLUTION_X = 1024,
+      RESOLUTION_Y = 1024,
 
       mat3 = RV.Matrix.mat3,
       vec3 = RV.Matrix.vec3,
@@ -17,6 +19,10 @@
 
       _textures = {},
       _rectBuffer,
+
+      _preFrameBuffer,
+      _preScreenTexture,
+      _renderBuffer,
 
       _paintTime = 0,
       _viewportFrame = {
@@ -215,7 +221,6 @@
       program.uSampler = _ctx.getUniformLocation(program, 'uSampler');
       program.uCropSource = _ctx.getUniformLocation(program, 'uCropSource');
 
-      //TODO: figure transform stack out laterz
       program.uTransforms = [];
       for (var i = 0; i < depth; i++) {
         program.uTransforms[i] = _ctx.getUniformLocation(program, 'uTransforms[' + i + ']')
@@ -233,19 +238,15 @@
     }
   }
 
-  function _textureize(block) {
-    var texture = block.texture;
-
-    if (!texture) {
-      texture = _ctx.createTexture();
+  function _texture(powerOfTwo) {
+      var texture = _ctx.createTexture();
 
       _ctx.bindTexture(_ctx.TEXTURE_2D, texture);
-      _ctx.texImage2D(_ctx.TEXTURE_2D, 0, _ctx.RGBA, _ctx.RGBA, _ctx.UNSIGNED_BYTE, block.image);
       _ctx.texParameteri(_ctx.TEXTURE_2D, _ctx.TEXTURE_WRAP_S, _ctx.CLAMP_TO_EDGE);
       _ctx.texParameteri(_ctx.TEXTURE_2D, _ctx.TEXTURE_WRAP_T, _ctx.CLAMP_TO_EDGE);
       _ctx.texParameteri(_ctx.TEXTURE_2D, _ctx.TEXTURE_MAG_FILTER, _ctx.LINEAR);
 
-      if (_.powerOf2(block.image.width) && _.powerOf2(block.image.height)) {
+      if (powerOfTwo) {
         _ctx.texParameteri(_ctx.TEXTURE_2D, _ctx.TEXTURE_MIN_FILTER, _ctx.LINEAR_MIPMAP_LINEAR);
         _ctx.generateMipmap(_ctx.TEXTURE_2D);
       }
@@ -253,6 +254,16 @@
         _ctx.texParameteri(_ctx.TEXTURE_2D, _ctx.TEXTURE_MIN_FILTER, _ctx.LINEAR);
       }
 
+      return texture;
+  }
+
+  function _textureize(block) {
+    var texture = block.texture;
+
+    if (!texture) {
+      texture = _texture(_.powerOf2(block.image.width) && _.powerOf2(block.image.height));
+
+      _ctx.texImage2D(_ctx.TEXTURE_2D, 0, _ctx.RGBA, _ctx.RGBA, _ctx.UNSIGNED_BYTE, block.image);
       block.texture = texture;
 
       _ctx.bindTexture(_ctx.TEXTURE_2D, null);
@@ -261,14 +272,54 @@
     return texture;
   }
 
+  function _setUpRenderBuffer() {
+    _preFrameBuffer = _ctx.createFramebuffer();
+    _ctx.bindFramebuffer(_ctx.FRAMEBUFFER, _preFrameBuffer);
+
+    _preScreenTexture = _texture(true);
+    _ctx.texImage2D(_ctx.TEXTURE_2D, 0, _ctx.RGBA, me.viewport[2], me.viewport[3], 0, _ctx.RGBA, _ctx.UNSIGNED_BYTE, null);
+
+    _renderBuffer = _ctx.createRenderbuffer();
+    _ctx.bindRenderbuffer(_ctx.RENDERBUFFER, _renderBuffer);
+    _ctx.renderbufferStorage(_ctx.RENDERBUFFER, _ctx.DEPTH_COMPONENT16, me.viewport[2], me.viewport[3]);
+
+    _ctx.framebufferTexture2D(_ctx.FRAMEBUFFER, _ctx.COLOR_ATTACHMENT0, _ctx.TEXTURE_2D, _preScreenTexture, 0);
+    _ctx.framebufferRenderbuffer(_ctx.FRAMEBUFFER, _ctx.DEPTH_ATTACHMENT, _ctx.RENDERBUFFER, _renderBuffer);
+
+    _ctx.bindTexture(_ctx.TEXTURE_2D, null);
+    _ctx.bindRenderbuffer(_ctx.RENDERBUFFER, null);
+    _ctx.bindFramebuffer(_ctx.FRAMEBUFFER, null);
+  }
+
+  function _setUpVertexBuffer() {
+    _rectBuffer = _ctx.createBuffer();
+    var vertices = [
+          0, 0, 0, 0,
+          0, 1.0, 0, 1.0,
+          1.0, 1.0, 1.0, 1.0,
+          1.0, 0, 1.0, 0
+        ];
+    _ctx.bindBuffer(_ctx.ARRAY_BUFFER, _rectBuffer);
+    _ctx.bufferData(_ctx.ARRAY_BUFFER, new Float32Array(vertices), _ctx.STATIC_DRAW);
+  }
+
+  function _setUpGlDefaults() {
+    _ctx.clearColor(0, 0, 0, 1);
+    _ctx.clear(_ctx.COLOR_BUFFER_BIT);
+    _ctx.colorMask(1, 1, 1, 0);
+
+    _ctx.enable(_ctx.BLEND);
+    _ctx.blendFunc(_ctx.SRC_ALPHA, _ctx.ONE_MINUS_SRC_ALPHA);
+  }
+
   function _resize() {
     _.extend(_canvas, {
-      height: document.height,
-      width: document.width
+      height: RESOLUTION_Y,
+      width: RESOLUTION_X
     });
 
     me.viewport = [
-      me.viewport[0], me.viewport[1], document.width, document.height
+      me.viewport[0], me.viewport[1], RESOLUTION_X, RESOLUTION_Y
     ];
 
     me.viewport[4] = document.width / 2 + me.viewport[0];
@@ -287,6 +338,7 @@
 
     _loadDefaultShaders(textureBit, me.Transform.count + 1);
 
+    // so far this is the only vertex buffer we ever bind
     //_ctx.bindBuffer(_ctx.ARRAY_BUFFER, _rectBuffer);
 
     _ctx.vertexAttribPointer(_shaderProgram.vertexPositionAttribute, 4, _ctx.FLOAT, false, 0, 0);
@@ -310,6 +362,21 @@
     me.Transform.pop();
   }
 
+  function _drawBlocks(blocks) {
+    var block;
+
+    for (var i = 0, l = blocks.length; i < l; i++) {
+      block = blocks[i];
+      _drawBlock(block);
+    }
+  }
+
+  function _tickBlocks(blocks, delta) {
+    for (var i = 0, l = blocks.length; i < l; i++) {
+      blocks[i].tick(delta);
+    }
+  }
+
   function _draw() {
     var blocks = RV.Map.getBlocksInViewport(me.viewport),
         block,
@@ -321,13 +388,10 @@
 
     _paintTime = now;
 
-    _ctx.clear(_ctx.COLOR_BUFFER_BIT);
+    //_ctx.clear(_ctx.COLOR_BUFFER_BIT);
 
-    for (var i = 0, l = blocks.length; i < l; i++) {
-      block = blocks[i];
-      _drawBlock(block);
-      block.tick(delta);
-    }
+    _drawBlocks(blocks);
+    _tickBlocks(blocks);
 
     me.adjustViewport();
 
@@ -398,30 +462,17 @@
       window.ctx = _ctx;
     }
 
+    //resize window and set up window resize detector
     _resize();
     window.addEventListener('resize', _.debounce(_resize, 100));
 
+    // run setup up functions
     _loadShaders();
+    _setUpGlDefaults();
+    _setUpVertexBuffer();
+    //_setUpRenderBuffer();
 
-    _ctx.clearColor(0, 0, 0, 1);
-    _ctx.clear(_ctx.COLOR_BUFFER_BIT);
-    _ctx.colorMask(1, 1, 1, 0);
-
-    _ctx.enable(_ctx.BLEND);
-    _ctx.blendFunc(_ctx.SRC_ALPHA, _ctx.ONE_MINUS_SRC_ALPHA);
-
-    _rectBuffer = _ctx.createBuffer();
-    var vertices = [
-          0, 0, 0, 0,
-          0, 1.0, 0, 1.0,
-          1.0, 1.0, 1.0, 1.0,
-          1.0, 0, 1.0, 0
-        ];
-    _ctx.bindBuffer(_ctx.ARRAY_BUFFER, _rectBuffer);
-    _ctx.bufferData(_ctx.ARRAY_BUFFER, new Float32Array(vertices), _ctx.STATIC_DRAW);
-
-    //testing stuff
-    //_drawBlock(RV.Hero);
+    // start render loop
     me.start();
   };
 
