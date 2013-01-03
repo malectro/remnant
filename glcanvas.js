@@ -3,8 +3,8 @@
 
       VIEWPORT_PADDING = 100,
       SHADERS = ['2d.frag', '2d.vert'],
-      RESOLUTION_X = 1024,
-      RESOLUTION_Y = 1024,
+      RESOLUTION_X = 512,
+      RESOLUTION_Y = 512,
 
       mat3 = RV.Matrix.mat3,
       vec3 = RV.Matrix.vec3,
@@ -362,12 +362,13 @@
     me.Transform.pop();
   }
 
-  function _drawBlocks(blocks) {
+  function _drawBlocks(blocks, delta) {
     var block;
 
     for (var i = 0, l = blocks.length; i < l; i++) {
       block = blocks[i];
       _drawBlock(block);
+      block.tick(delta);
     }
   }
 
@@ -390,8 +391,8 @@
 
     //_ctx.clear(_ctx.COLOR_BUFFER_BIT);
 
-    _drawBlocks(blocks);
-    _tickBlocks(blocks);
+    _drawBlocks(blocks, delta);
+    //_tickBlocks(blocks);
 
     me.adjustViewport();
 
@@ -403,19 +404,6 @@
       // record fps
       _hudWrite(fps.toFixed(3) + ' fps<br />' + delta.toFixed(6) + ' ms');
     }
-  }
-
-  function _drawWarped(image, x, y, w, h) {
-    var warp = RV.Map.warp;
-
-    if (false && warp) {
-      dimensions = warp.warp(x, y, w, h);
-    }
-    else {
-      dimensions = {x: x, y: y, w: w, h: h};
-    }
-
-    _ctx.drawImage(image, dimensions.x, dimensions.y, dimensions.w, dimensions.h);
   }
 
   me.adjustViewport = function () {
