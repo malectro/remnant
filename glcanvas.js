@@ -13,6 +13,7 @@
 
       _shaders = {},
       _shaderProgram,
+      _shaderPrograms = {},
 
       _textures = {},
 
@@ -35,9 +36,13 @@
     };
 
   (function () {
-    var me = Canvas.Transform = {},
+    var me = RV.Canvas.Transform = {},
 
-        MAX_DEPTH = 16;
+        MAX_DEPTH = 16,
+
+        _translator = mat3.copy(mat3.identity),
+        _rotator = mat3.copy(mat3.identity),
+        _scalor = mat3.copy(mat3.identity);
 
     me.clear = function () {
       me.stack = [];
@@ -64,6 +69,23 @@
       if (!me.count) {
         return me.stack[0];
       }
+
+      var m = mat3.identity;
+
+      if (me.valid > me.count - 1) {
+        me.valid = me.count - 1;
+      }
+
+      for (var i = me.valid; i < me.count + 1; i++) {
+        m = mat3.mult(me.stack[i], m);
+        me.cache[i] = m;
+      }
+
+      me.valid = me.count - 1;
+
+      me.result = me.cache[me.count];
+
+      return me.result;
     };
 
     me.push = function () {
@@ -75,8 +97,37 @@
       if (me.count) {
         me.count--;
       }
-    }
+    };
 
+    me.translate = function (x, y) {
+      _translator[6] = x;
+      _translator[7] = y;
+      me.mult(_translator);
+    };
+
+    me.scale = function (x, y) {
+      _scalor[0] = x;
+      _scalor[4] = y;
+      me.mult(_scalor);
+    };
+
+    me.rotate = function (rads) {
+      var sin = Math.sin(-rads),
+          cos = Math.cos(-rads);
+
+      _rotator[0] = cos;
+      _rotator[3] = sin;
+      _rotator[1] = -sin;
+      _rotator[4] = cos;
+
+      me.mult(_rotator);
+    };
+
+    me.mult = function (m) {
+      me.stack[me.count] = mat3.mult(m, me.stack[me.count]);
+    };
+
+    me.clear();
   }());
 
   function _shaderStamp(raw, params) {
@@ -132,31 +183,53 @@
     });
   }
 
-  function _loadDefaultShaders() {
-    var program = _shaderProgram = _ctx.createProgram();
+  function _loadDefaultShaders(texture, depth) {
+    depth = depth || 1;
 
-    _ctx.attachShader(program, _loadShader('main_frag', {hasTexture: '0', hasCrop: '0'}));
-    _ctx.attachShader(program, _loadShader('main_vert', {hasTexture: '0', depth: 1, w: me.viewport[2], h: me.viewport[3]}));
+    var key = texture + ':' + depth,
+        program = _shaderPrograms[key];
 
-    _ctx.linkProgram(program);
+    if (program) {
+      _ctx.useProgram(program);
+      _shaderProgram = program;
+    }
+    else {
+      program = _shaderProgram = _ctx.createProgram();
 
-    if (!_ctx.getProgramParameter(program, _ctx.LINK_STATUS)) {
-      throw "could not initialize shader program.";
+      _ctx.attachShader(program, _loadShader('main_frag', {hasTexture: texture, hasCrop: '0'}));
+      _ctx.attachShader(program, _loadShader('main_vert', {hasTexture: texture, depth: 1, w: 2 / me.viewport[2], h: -2 / me.viewport[3]}));
+
+      _ctx.linkProgram(program);
+
+      if (!_ctx.getProgramParameter(program, _ctx.LINK_STATUS)) {
+        throw "could not initialize shader program.";
+      }
+
+      _ctx.useProgram(program);
+
+      program.vertexPositionAttribute = _ctx.getAttribLocation(program, 'aVertexPosition');
+      _ctx.enableVertexAttribArray(program.vertexPositionAttribute);
+
+      program.uColor = _ctx.getUniformLocation(program, 'uColor');
+      program.uSampler = _ctx.getUniformLocation(program, 'uSampler');
+      program.uCropSource = _ctx.getUniformLocation(program, 'uCropSource');
+
+      //TODO: figure transform stack out laterz
+      program.uTransforms = [];
+      for (var i = 0; i < depth; i++) {
+        program.uTransforms[i] = _ctx.getUniformLocation(program, 'uTransforms[' + i + ']')
+      }
+
+      _shaderPrograms[key] = program;
     }
 
-    _ctx.useProgram(program);
-
-    _shaderProgram.vertexPositionAttribute = _ctx.getAttribLocation(program, 'aVertexPosition');
-    _ctx.enableVertexAttribArray(program.vertexPositionAttribute);
-
-    program.uColor = _ctx.getUniformLocation(program, 'uColor');
-    program.uSampler = _ctx.getUniformLocation(program, 'uSampler');
-    program.uCropSource = _ctx.getUniformLocation(program, 'uCropSource');
-
-    //TODO: figure transform stack out laterz
-    program.uTransforms = [];
-
     return program;
+  }
+
+  function _sendTrans() {
+    for (var i = 0, l = me.Transform.count + 1; i < l; i++) {
+      _ctx.uniformMatrix3fv(_shaderProgram.uTransforms[i], false, me.Transform.stack[l - 1 - i]);
+    }
   }
 
   function _textureize(block) {
@@ -197,35 +270,50 @@
 
     me.viewport[4] = document.width / 2 + me.viewport[0];
     me.viewport[5] = document.height / 2 + me.viewport[1];
+
+    _ctx.viewport(0, 0, me.viewport[2], me.viewport[3]);
   }
 
   var _hudWrite = _.throttle(RV.Hud.write, 200);
 
   function _drawBlock(block) {
+    var textureBit = (false && block.image) ? '1' : '0';
+
     var buffer = _ctx.createBuffer(),
         vertices = [
-          1.0, 1.0, 0.0,
-          -1.0, 1.0, 0.0,
-          1.0, -1.0, 0.0,
-          -1.0, -1.0, 0.0
+          0, 0, 0, 0,
+          0, 1.0, 0, 1.0,
+          1.0, 1.0, 1.0, 1.0,
+          1.0, 0, 1.0, 0
         ];
+
+    me.Transform.push();
+
+    _loadDefaultShaders(textureBit, me.Transform.count + 1);
 
     _ctx.bindBuffer(_ctx.ARRAY_BUFFER, buffer);
     _ctx.bufferData(_ctx.ARRAY_BUFFER, new Float32Array(vertices), _ctx.STATIC_DRAW);
 
-    _ctx.vertexAttribPointer(_shaderProgram.vertexPositionAttribute, 3, _ctx.FLOAT, false, 0, 0);
+    _ctx.vertexAttribPointer(_shaderProgram.vertexPositionAttribute, 4, _ctx.FLOAT, false, 0, 0);
+
+    me.Transform.translate(block.location.x, block.location.y);
+    me.Transform.scale(block.size.w, block.size.h);
+    _sendTrans();
 
     if (false && block.image) {
       _ctx.bindTexture(_ctx.TEXTURE_2D, _textureize(block));
       _ctx.activeTexture(_ctx.TEXTURE0);
       _ctx.uniform1i(_shaderProgram.uSampler, 0);
 
-      _ctx.drawArrays(_ctx.TRIANGLE_STRIP, 0, 4);
+      _ctx.drawArrays(_ctx.TRIANGLE_FAN, 0, 4);
     }
     else {
+      console.log('hi', me.Transform.count + 1, me.Transform);
       _ctx.uniform4f(_shaderProgram.uColor, 1, 1, 1, 1);
-      _ctx.drawArrays(_ctx.LINE_LOOP, 0, 4);
+      _ctx.drawArrays(_ctx.TRIANGLE_FAN, 0, 4);
     }
+
+    me.Transform.pop();
   }
 
   function _draw() {
@@ -320,7 +408,13 @@
     window.addEventListener('resize', _.debounce(_resize, 100));
 
     _loadShaders();
-    _loadDefaultShaders();
+
+    _ctx.clearColor(1, 1, 1, 1);
+    _ctx.clear(_ctx.COLOR_BUFFER_BIT);
+    _ctx.colorMask(1, 1, 1, 0);
+
+    _ctx.enable(_ctx.BLEND);
+    _ctx.blendFunc(_ctx.SRC_ALPHA, _ctx.ONE_MINUS_SRC_ALPHA);
 
     //testing stuff
     _drawBlock(RV.Hero);
