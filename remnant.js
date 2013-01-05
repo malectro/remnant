@@ -3,10 +3,10 @@ var RV = (function () {
   var me = {},
 
       ALL_THE_THINGS = [
+        'glcanvas',
         'hero',
         'map',
         'block',
-        'glcanvas',
         'matrix',
         'controller',
         'hud',

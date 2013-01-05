@@ -273,16 +273,25 @@
   }
 
   function _setUpRenderBuffer() {
-    _preFrameBuffer = _ctx.createFramebuffer();
-    _ctx.bindFramebuffer(_ctx.FRAMEBUFFER, _preFrameBuffer);
-
-    _preScreenTexture = _texture(true);
+    _preScreenTexture = _ctx.createTexture();
+    _ctx.bindTexture(_ctx.TEXTURE_2D, _preScreenTexture);
+    _ctx.texParameteri(_ctx.TEXTURE_2D, _ctx.TEXTURE_WRAP_S, _ctx.CLAMP_TO_EDGE);
+    _ctx.texParameteri(_ctx.TEXTURE_2D, _ctx.TEXTURE_WRAP_T, _ctx.CLAMP_TO_EDGE);
+    //_ctx.texParameteri(_ctx.TEXTURE_2D, _ctx.TEXTURE_MAG_FILTER, _ctx.LINEAR);
+    //_ctx.texParameteri(_ctx.TEXTURE_2D, _ctx.TEXTURE_MIN_FILTER, _ctx.LINEAR_MIPMAP_NEAREST);
+    //_ctx.texParameteri(_ctx.TEXTURE_2D, _ctx.TEXTURE_MIN_FILTER, _ctx.LINEAR);
+    _ctx.texParameteri(_ctx.TEXTURE_2D, _ctx.TEXTURE_MAG_FILTER, _ctx.NEAREST);
+    _ctx.texParameteri(_ctx.TEXTURE_2D, _ctx.TEXTURE_MIN_FILTER, _ctx.NEAREST);
+    //_ctx.generateMipmap(_ctx.TEXTURE_2D);
     _ctx.texImage2D(_ctx.TEXTURE_2D, 0, _ctx.RGBA, me.viewport[2], me.viewport[3], 0, _ctx.RGBA, _ctx.UNSIGNED_BYTE, null);
+    //_ctx.generateMipmap(_ctx.TEXTURE_2D);
 
     _renderBuffer = _ctx.createRenderbuffer();
     _ctx.bindRenderbuffer(_ctx.RENDERBUFFER, _renderBuffer);
     _ctx.renderbufferStorage(_ctx.RENDERBUFFER, _ctx.DEPTH_COMPONENT16, me.viewport[2], me.viewport[3]);
 
+    _preFrameBuffer = _ctx.createFramebuffer();
+    _ctx.bindFramebuffer(_ctx.FRAMEBUFFER, _preFrameBuffer);
     _ctx.framebufferTexture2D(_ctx.FRAMEBUFFER, _ctx.COLOR_ATTACHMENT0, _ctx.TEXTURE_2D, _preScreenTexture, 0);
     _ctx.framebufferRenderbuffer(_ctx.FRAMEBUFFER, _ctx.DEPTH_ATTACHMENT, _ctx.RENDERBUFFER, _renderBuffer);
 
@@ -305,11 +314,13 @@
 
   function _setUpGlDefaults() {
     _ctx.clearColor(0, 0, 0, 1);
-    _ctx.clear(_ctx.COLOR_BUFFER_BIT);
+    _ctx.clear(_ctx.COLOR_BUFFER_BIT | _ctx.DEPTH_BUFFER_BIT);
     _ctx.colorMask(1, 1, 1, 0);
 
-    _ctx.enable(_ctx.BLEND);
-    _ctx.blendFunc(_ctx.SRC_ALPHA, _ctx.ONE_MINUS_SRC_ALPHA);
+    //_ctx.enable(_ctx.BLEND);
+    //_ctx.blendFunc(_ctx.SRC_ALPHA, _ctx.ONE_MINUS_SRC_ALPHA);
+
+    //_ctx.enable(_ctx.DEPTH_TEST);
   }
 
   function _resize() {
@@ -330,35 +341,39 @@
 
   var _hudWrite = _.throttle(RV.Hud.write, 200);
 
-  function _drawBlock(block) {
-    var textureBit = (block.image) ? '1' : '0';
-
+  function _drawTexture(texture, x, y, w, h) {
     me.Transform.push();
 
-    _loadDefaultShaders(textureBit, me.Transform.count + 1);
+    _loadDefaultShaders(1, me.Transform.count + 1);
 
     // so far this is the only vertex buffer we ever bind
     //_ctx.bindBuffer(_ctx.ARRAY_BUFFER, _rectBuffer);
 
     _ctx.vertexAttribPointer(_shaderProgram.vertexPositionAttribute, 4, _ctx.FLOAT, false, 0, 0);
 
-    me.Transform.translate(block.location.x - me.viewport[0], block.location.y - me.viewport[1]);
-    me.Transform.scale(block.size.w, block.size.h);
+    me.Transform.translate(x, y);
+    me.Transform.scale(w, h);
     _sendTrans();
 
-    if (block.image) {
-      _ctx.bindTexture(_ctx.TEXTURE_2D, _textureize(block));
-      _ctx.activeTexture(_ctx.TEXTURE0);
-      _ctx.uniform1i(_shaderProgram.uSampler, 0);
+    _ctx.bindTexture(_ctx.TEXTURE_2D, texture);
+    _ctx.activeTexture(_ctx.TEXTURE0);
+    _ctx.uniform1i(_shaderProgram.uSampler, 0);
+    _ctx.drawArrays(_ctx.TRIANGLE_FAN, 0, 4);
 
-      _ctx.drawArrays(_ctx.TRIANGLE_FAN, 0, 4);
-    }
-    else {
-      _ctx.uniform4f(_shaderProgram.uColor, 1, 1, 1, 1);
-      _ctx.drawArrays(_ctx.TRIANGLE_FAN, 0, 4);
-    }
+    // non-texture code
+    //_ctx.uniform4f(_shaderProgram.uColor, 1, 1, 1, 1);
+    //_ctx.drawArrays(_ctx.TRIANGLE_FAN, 0, 4);
 
     me.Transform.pop();
+  }
+
+  function _drawBlock(block) {
+    var textureBit = (block.image) ? '1' : '0';
+
+
+    if (block.image) {
+      _drawTexture(_textureize(block), block.location.x - me.viewport[0], block.location.y - me.viewport[1], block.size.w, block.size.h);
+    }
   }
 
   function _drawBlocks(blocks, delta) {
@@ -384,8 +399,24 @@
 
     //_ctx.clear(_ctx.COLOR_BUFFER_BIT);
 
-    //blocks = RV.Map.allBlocks;
+    // draw environment to a texture
+    _ctx.bindFramebuffer(_ctx.FRAMEBUFFER, _preFrameBuffer);
+
+    _ctx.clear(_ctx.COLOR_BUFFER_BIT | _ctx.DEPTH_BUFFER_BIT);
+    _ctx.viewport(0, 0, me.viewport[2], me.viewport[3]);
+
     _drawBlocks(blocks, delta);
+
+    //_ctx.bindTexture(_ctx.TEXTURE_2D, _preScreenTexture);
+    //_ctx.generateMipmap(_ctx.TEXTURE_2D);
+    //_ctx.bindTexture(_ctx.TEXTURE_2D, null);
+
+    _ctx.bindFramebuffer(_ctx.FRAMEBUFFER, null);
+
+    _ctx.clear(_ctx.COLOR_BUFFER_BIT | _ctx.DEPTH_BUFFER_BIT);
+
+    //draw textured environment and hero
+    _drawTexture(_preScreenTexture, 0, 0, me.viewport[2], me.viewport[3]);
     _drawBlocks(RV.Map.heroBlocks, delta);
 
     me.adjustViewport();
@@ -436,10 +467,11 @@
 
   me.init = function (canvas) {
     _canvas = canvas;
-    _ctx = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+    _ctx = canvas.getContext('webgl') || canvas.getContext('experimental-webgl', {preserveDrawingBuffer: true});
 
     if (RV.DEBUG) {
       // give global access to the canvas
+      //window.gldebug = WebGLDebugUtils.makeDebugContext(_ctx, undefined, validateNoneOfTheArgsAreUndefined);
       window.canvas = _canvas;
       window.ctx = _ctx;
     }
@@ -452,7 +484,7 @@
     _loadShaders();
     _setUpGlDefaults();
     _setUpVertexBuffer();
-    //_setUpRenderBuffer();
+    _setUpRenderBuffer();
 
     // start render loop
     me.start();

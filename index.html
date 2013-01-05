@@ -1,6 +1,7 @@
 <!doctype html>
 <html>
   <head>
+    <script type="text/javascript" src="webgl-debug.js"></script>
     <script type="text/javascript" src="require.js"></script>
     <script type="text/javascript" src="remnant.js"></script>
 
@@ -49,6 +50,7 @@
 
       uniform vec4 uColor;
       uniform mat3 uTransforms[$depth];
+      uniform float uFlipY;
 
       varying vec4 vColor;
 
