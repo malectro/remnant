@@ -190,8 +190,9 @@
     });
   }
 
-  function _loadDefaultShaders(texture, depth) {
+  function _loadDefaultShaders(texture, depth, flip) {
     depth = depth || 1;
+    flip = flip || 1;
 
     var key = texture + ':' + depth,
         program = _shaderPrograms[key];
@@ -341,7 +342,7 @@
 
   var _hudWrite = _.throttle(RV.Hud.write, 200);
 
-  function _drawTexture(texture, x, y, w, h) {
+  function _drawTexture(texture, x, y, w, h, flip) {
     me.Transform.push();
 
     _loadDefaultShaders(1, me.Transform.count + 1);
@@ -416,7 +417,7 @@
     _ctx.clear(_ctx.COLOR_BUFFER_BIT | _ctx.DEPTH_BUFFER_BIT);
 
     //draw textured environment and hero
-    _drawTexture(_preScreenTexture, 0, 0, me.viewport[2], me.viewport[3]);
+    _drawTexture(_preScreenTexture, 0, me.viewport[3], me.viewport[2], -me.viewport[3]);
     _drawBlocks(RV.Map.heroBlocks, delta);
 
     me.adjustViewport();
