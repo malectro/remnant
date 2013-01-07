@@ -4,7 +4,7 @@
       RUN_FRICTION = 0.9,
       RUN_SPEED = 300,
       STOP_FRICTION = 0,
-      JUMP_SPEED = -6000,
+      JUMP_SPEED = -10000,
       FLOAT_SPEED = -100;
 
   me.location = {

@@ -1,0 +1,54 @@
+<!doctype html>
+<html>
+  <head></head>
+  <body>
+    <canvas></canvas>
+    <script>
+      var canvas = document.getElementsByTagName('canvas')[0],
+          ctx = canvas.getContext('2d');
+
+      function theFunc(x, factor) {
+        var depth = 50,
+            width = depth * 2,
+            location = 100,
+            yZero = 100,
+
+            depth2 = depth * factor,
+            width2 = width * factor;
+
+        if (x < location) {
+          return yZero;
+        }
+
+        if (x < location + depth2) {
+          return Math.sin((x - depth2 - location) * Math.PI / width2) * -depth2 + yZero - depth2;
+        }
+
+        if (x < location + width2) {
+          return Math.sin((x - location - depth2 * 3) * Math.PI / width2) * -depth2 + yZero - depth2;
+        }
+
+        return yZero;
+      }
+
+      function drawGraph(factor) {
+        ctx.moveTo(0, theFunc(0, factor));
+        ctx.beginPath();
+
+        for (var i = 1; i < canvas.width; i++) {
+          ctx.lineTo(i, theFunc(i, factor));
+        }
+
+        ctx.closePath();
+        ctx.stroke();
+      }
+
+      function paint() {
+        ctx.clearRect(0, 0, 300, 300);
+        drawGraph(Math.abs(Math.sin((new Date - 0) * Math.PI / 5000)));
+      }
+
+      setInterval(paint, 50);
+    </script>
+  </body>
+</html>

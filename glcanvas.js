@@ -342,7 +342,7 @@
 
   var _hudWrite = _.throttle(RV.Hud.write, 200);
 
-  function _drawTexture(texture, x, y, w, h, flip) {
+  function _drawTexture(texture, x, y, w, h, warped) {
     me.Transform.push();
 
     _loadDefaultShaders(1, me.Transform.count + 1);
@@ -352,8 +352,16 @@
 
     _ctx.vertexAttribPointer(_shaderProgram.vertexPositionAttribute, 4, _ctx.FLOAT, false, 0, 0);
 
+
     me.Transform.translate(x, y);
     me.Transform.scale(w, h);
+
+    if (warped) {
+      var time = _.now();
+      var factor = Math.sin(time * 0.001);
+      //me.Transform.scale(1, factor);
+    }
+
     _sendTrans();
 
     _ctx.bindTexture(_ctx.TEXTURE_2D, texture);
@@ -417,7 +425,7 @@
     _ctx.clear(_ctx.COLOR_BUFFER_BIT | _ctx.DEPTH_BUFFER_BIT);
 
     //draw textured environment and hero
-    _drawTexture(_preScreenTexture, 0, me.viewport[3], me.viewport[2], -me.viewport[3]);
+    _drawTexture(_preScreenTexture, 0, me.viewport[3], me.viewport[2], -me.viewport[3], true);
     _drawBlocks(RV.Map.heroBlocks, delta);
 
     me.adjustViewport();

@@ -1,7 +1,7 @@
 (function () {
   var me = RV.Block = {},
 
-      GRAVITY = 200,
+      GRAVITY = 400,
       FRICTION = 0.0001,
       MIN_VELOCITY = 5,
       TERMINAL_VELOCITY = 400,
