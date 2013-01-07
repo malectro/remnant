@@ -190,9 +190,9 @@
     });
   }
 
-  function _loadDefaultShaders(texture, depth, flip) {
+  function _loadDefaultShaders(texture, depth, ripple) {
     depth = depth || 1;
-    flip = flip || 1;
+    ripple = ripple || 0;
 
     var key = texture + ':' + depth,
         program = _shaderPrograms[key];
@@ -204,7 +204,7 @@
     else {
       program = _shaderProgram = _ctx.createProgram();
 
-      _ctx.attachShader(program, _loadShader('main_frag', {hasTexture: texture, hasCrop: '0'}));
+      _ctx.attachShader(program, _loadShader('main_frag', {hasTexture: texture, hasCrop: '0', ripple: ripple}));
       _ctx.attachShader(program, _loadShader('main_vert', {hasTexture: texture, depth: 1, w: 2 / me.viewport[2], h: -2 / me.viewport[3]}));
 
       _ctx.linkProgram(program);
@@ -345,7 +345,9 @@
   function _drawTexture(texture, x, y, w, h, warped) {
     me.Transform.push();
 
-    _loadDefaultShaders(1, me.Transform.count + 1);
+    warped = (warped) ? 1 : 0;
+
+    _loadDefaultShaders(1, me.Transform.count + 1, warped);
 
     // so far this is the only vertex buffer we ever bind
     //_ctx.bindBuffer(_ctx.ARRAY_BUFFER, _rectBuffer);

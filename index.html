@@ -14,6 +14,7 @@
 
       #define hasTexture $hasTexture
       #define hasCrop $hasCrop
+      #define ripple $ripple
 
       uniform float time;
       varying vec4 vColor;
@@ -31,7 +32,16 @@
           #if hasCrop
             gl_FragColor = texture2D(uSampler, vec2(vTextureCoord.x * uCropSource.z, vTextureCoord.y * uCropSource.w) + uCropSource.xy);
           #else
-            gl_FragColor = texture2D(uSampler, vec2(vTextureCoord.x, vTextureCoord.y));
+            #if ripple
+              vec2 tc = vTextureCoord.xy;
+              vec2 p = -1.0 + 2.0 * tc;
+              float len = length(p);
+              vec2 uv = tc + (p/len)*cos(len*12.0-1.0*4.0)*0.03;
+              vec3 col = texture2D(uSampler, uv).xyz;
+              gl_FragColor = vec4(col, 1.0);
+            #else
+              gl_FragColor = texture2D(uSampler, vec2(vTextureCoord.x, vTextureCoord.y));
+            #endif
           #endif
         #else
           gl_FragColor = vColor;
