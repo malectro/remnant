@@ -194,7 +194,7 @@
     depth = depth || 1;
     ripple = ripple || 0;
 
-    var key = texture + ':' + depth,
+    var key = Array.prototype.join.call(arguments, ':'),
         program = _shaderPrograms[key];
 
     if (program) {
@@ -443,37 +443,8 @@
   }
 
   me.adjustViewport = function () {
-    var heroDeltaX,
-        heroDeltaY;
-
-    _viewportFrame = {
-      left: me.viewport[0] + VIEWPORT_PADDING,
-      top: me.viewport[1] + VIEWPORT_PADDING,
-      right: me.viewport[0] + me.viewport[2] - VIEWPORT_PADDING,
-      bottom: me.viewport[1] + me.viewport[3] - VIEWPORT_PADDING
-    };
-
-    heroDeltaX = RV.Hero.location.x - _viewportFrame.right;
-    if (heroDeltaX > 0) {
-      me.viewport[0] += heroDeltaX;
-    }
-    else {
-      heroDeltaX = RV.Hero.location.x - _viewportFrame.left;
-      if (heroDeltaX < 0) {
-        me.viewport[0] += heroDeltaX;
-      }
-    }
-
-    heroDeltaY = RV.Hero.location.y - _viewportFrame.bottom;
-    if (heroDeltaY > 0) {
-      me.viewport[1] += heroDeltaY;
-    }
-    else {
-      heroDeltaY = RV.Hero.location.y - _viewportFrame.top;
-      if (heroDeltaY < 0) {
-        me.viewport[1] += heroDeltaY;
-      }
-    }
+    me.viewport[0] = RV.Hero.location.x - (me.viewport[2] - RV.Hero.size.w) / 2;
+    me.viewport[1] = RV.Hero.location.y - (me.viewport[3] - RV.Hero.size.h) / 2;
   };
 
   me.init = function (canvas) {
@@ -513,4 +484,26 @@
   shaders = _shaders;
 
 }(window));
+
+function testShader(x) {
+  var diff,
+      ret;
+
+  if (x < 0.5) {
+    ret = x;
+  }
+  else if (x < 0.55) {
+    diff = x - 0.5;
+    ret = 0.525 - Math.cos(diff * Math.PI / 0.1) * 0.025;
+  }
+  else if (x < 0.6) {
+    diff = x - 0.55;
+    ret = 0.525 + Math.sin(diff * Math.PI / 0.1) * 0.025;
+  }
+  else {
+    ret = x - 0.05;
+  }
+
+  return ret;
+}
 

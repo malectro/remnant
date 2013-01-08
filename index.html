@@ -12,6 +12,7 @@
         precision highp float;
       #endif
 
+      #define M_PI 3.1415926535897932384626433832795
       #define hasTexture $hasTexture
       #define hasCrop $hasCrop
       #define ripple $ripple
@@ -33,12 +34,27 @@
             gl_FragColor = texture2D(uSampler, vec2(vTextureCoord.x * uCropSource.z, vTextureCoord.y * uCropSource.w) + uCropSource.xy);
           #else
             #if ripple
-              vec2 tc = vTextureCoord.xy;
-              vec2 p = -1.0 + 2.0 * tc;
-              float len = length(p);
-              vec2 uv = tc + (p/len)*cos(len*12.0-1.0*4.0)*0.03;
-              vec3 col = texture2D(uSampler, uv).xyz;
-              gl_FragColor = vec4(col, 1.0);
+              vec2 sampleCoords;
+              float diff;
+
+              if (vTextureCoord.x < 0.5) {
+                sampleCoords = vTextureCoord.xy;
+              }
+              else if (vTextureCoord.x < 0.55) {
+                diff = vTextureCoord.x - 0.5;
+                diff = asin(diff / 0.05) * 0.2 / M_PI + 0.5;
+                sampleCoords = vec2(diff, vTextureCoord.y);
+              }
+              else if (vTextureCoord.x < 0.6) {
+                diff = 0.6 - vTextureCoord.x;
+                diff = 0.7 - asin(diff / 0.05) * 0.2 / M_PI;
+                sampleCoords = vec2(diff, vTextureCoord.y);
+              }
+              else {
+                sampleCoords = vec2(vTextureCoord.x + 0.1, vTextureCoord.y);
+              }
+
+              gl_FragColor = texture2D(uSampler, sampleCoords);
             #else
               gl_FragColor = texture2D(uSampler, vec2(vTextureCoord.x, vTextureCoord.y));
             #endif

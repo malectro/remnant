@@ -15,9 +15,6 @@
     [630, 460, 20, 10, true],
     [600, 430, 20, 10, true]
   ];
-  _testBlocks = [
-    [0, 100, 400, 30, true]
-  ];
 
   me.load = function () {
     _testBlocks.forEach(function (block) {
