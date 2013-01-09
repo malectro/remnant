@@ -222,6 +222,11 @@
       program.uSampler = _ctx.getUniformLocation(program, 'uSampler');
       program.uCropSource = _ctx.getUniformLocation(program, 'uCropSource');
 
+      // warp uniforms
+      program.uBendRadius = _ctx.getUniformLocation(program, 'uBendRadius');
+      program.uBendCenter = _ctx.getUniformLocation(program, 'uBendCenter');
+      program.uSqueezeRadius = _ctx.getUniformLocation(program, 'uSqueezeRadius');
+
       program.uTransforms = [];
       for (var i = 0; i < depth; i++) {
         program.uTransforms[i] = _ctx.getUniformLocation(program, 'uTransforms[' + i + ']')
@@ -359,9 +364,9 @@
     me.Transform.scale(w, h);
 
     if (warped) {
-      var time = _.now();
-      var factor = Math.sin(time * 0.001);
-      //me.Transform.scale(1, factor);
+      _ctx.uniform1f(_shaderProgram.uBendRadius, 0.1);
+      _ctx.uniform1f(_shaderProgram.uBendCenter, 0.6);
+      _ctx.uniform1f(_shaderProgram.uSqueezeRadius, 0.05);
     }
 
     _sendTrans();

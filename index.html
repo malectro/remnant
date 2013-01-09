@@ -26,6 +26,11 @@
         #if hasCrop
           uniform vec4 uCropSource;
         #endif
+        #if ripple
+          uniform float uBendRadius;
+          uniform float uBendCenter;
+          uniform float uSqueezeRadius;
+        #endif
       #endif
 
       void main(void) {
@@ -36,22 +41,25 @@
             #if ripple
               vec2 sampleCoords;
               float diff;
+              float bendDiameter = uBendRadius * 2.0;
+              float left = uBendCenter - uBendRadius;
+              float right = uBendCenter + uBendRadius;
 
-              if (vTextureCoord.x < 0.5) {
+              if (vTextureCoord.x < left) {
                 sampleCoords = vTextureCoord.xy;
               }
-              else if (vTextureCoord.x < 0.55) {
-                diff = vTextureCoord.x - 0.5;
-                diff = asin(diff / 0.05) * 0.2 / M_PI + 0.5;
+              else if (vTextureCoord.x < left + uSqueezeRadius) {
+                diff = vTextureCoord.x - left;
+                diff = asin(diff / uSqueezeRadius) * bendDiameter / M_PI + left;
                 sampleCoords = vec2(diff, vTextureCoord.y);
               }
-              else if (vTextureCoord.x < 0.6) {
-                diff = 0.6 - vTextureCoord.x;
-                diff = 0.7 - asin(diff / 0.05) * 0.2 / M_PI;
+              else if (vTextureCoord.x < left + uSqueezeRadius * 2.0) {
+                diff = uBendCenter - vTextureCoord.x;
+                diff = right - asin(diff / uSqueezeRadius) * bendDiameter / M_PI;
                 sampleCoords = vec2(diff, vTextureCoord.y);
               }
               else {
-                sampleCoords = vec2(vTextureCoord.x + 0.1, vTextureCoord.y);
+                sampleCoords = vec2(vTextureCoord.x + uBendRadius, vTextureCoord.y);
               }
 
               gl_FragColor = texture2D(uSampler, sampleCoords);
