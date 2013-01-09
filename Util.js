@@ -10,11 +10,11 @@
    * create
    * create a new object that inherits from the parent
    */
-  me.create = function (parent) {
+  me.create = function (parent, inits) {
     function f() {};
     f.prototype = parent;
-    return new f;
-  }
+    return me.extend(new f, inits);
+  };
 
   /**
    * extend

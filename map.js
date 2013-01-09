@@ -4,6 +4,7 @@
   me.blocks = [];
   me.allBlocks = [];
   me.heroBlocks = [];
+  me.currentWarp = null;
 
   var _testBlocks = [
     [0, 100, 400, 30, true],
@@ -46,29 +47,25 @@
     me.allBlocks.push(block);
   };
 
-  me.warp = (function () {
-    var me = {};
+  me.warp = function (x) {
+    if (!me.currentWarp) {
+      me.currentWarp = _.create(RV.Warp, {
+        x: x
+      });
+      me.currentWarp.init();
+    }
+  };
 
-    me.x = 50;
-    me.w = 50;
-    me.left = me.x - me.w;
-    me.center = me.w / 2 + me.w;
-
-    me.warp = function (x, y, w, h) {
-      var diff1, diff2, newX;
-
-      if (x < me.left) {
+  me.tick = function (delta, time) {
+    if (me.currentWarp) {
+      if (me.currentWarp.alive) {
+        me.currentWarp.tick(time);
       }
+      else {
+        me.currentWarp = null;
+      }
+    }
+  };
 
-      return {
-        x: x,
-        y: y,
-        w: w,
-        h: h
-      };
-    };
-
-    return me;
-  }());
 }());
 

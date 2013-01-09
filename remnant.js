@@ -4,6 +4,7 @@ var RV = (function () {
 
       ALL_THE_THINGS = [
         'glcanvas',
+        'warp',
         'hero',
         'map',
         'block',
