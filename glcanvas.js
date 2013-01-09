@@ -24,6 +24,13 @@
       _preScreenTexture,
       _renderBuffer,
 
+      _warp = {
+        x: 0,
+        bend: 0,
+        squeeze: 0,
+        on: false
+      },
+
       _paintTime = 0,
       _viewportFrame = {
         left: 0, top: 0, right: 0, bottom: 0
@@ -350,7 +357,7 @@
   function _drawTexture(texture, x, y, w, h, warped) {
     me.Transform.push();
 
-    warped = (warped) ? 1 : 0;
+    warped = (warped && _warp.on) ? 1 : 0;
 
     _loadDefaultShaders(1, me.Transform.count + 1, warped);
 
@@ -364,9 +371,9 @@
     me.Transform.scale(w, h);
 
     if (warped) {
-      _ctx.uniform1f(_shaderProgram.uBendRadius, 0.1);
-      _ctx.uniform1f(_shaderProgram.uBendCenter, 0.6);
-      _ctx.uniform1f(_shaderProgram.uSqueezeRadius, 0.05);
+      _ctx.uniform1f(_shaderProgram.uBendRadius, _warp.bend);
+      _ctx.uniform1f(_shaderProgram.uBendCenter, (_warp.x - me.viewport[0]) / me.viewport[2]);
+      _ctx.uniform1f(_shaderProgram.uSqueezeRadius, _warp.squeeze);
     }
 
     _sendTrans();
@@ -484,6 +491,20 @@
 
   me.stop = function () {
     _animating = false;
+  };
+
+  me.squeeze = function () {
+    warpInt = setInterval(function () {
+      if (_warp.bend < 0.1) {
+        _warp.x = 100;
+        _warp.bend += 0.001;
+        _warp.squeeze = _warp.bend / 2;
+        _warp.on = true;
+      }
+      else {
+        clearInterval(warpInt);
+      }
+    }, 10);
   };
 
   shaders = _shaders;
