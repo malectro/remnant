@@ -450,8 +450,9 @@
   }
 
   me.adjustViewport = function () {
-    me.viewport[0] = RV.Hero.location.x - (me.viewport[2] - RV.Hero.size.w) / 2;
-    me.viewport[1] = RV.Hero.location.y - (me.viewport[3] - RV.Hero.size.h) / 2;
+    var location = RV.Hero.warpLocation();
+    me.viewport[0] = location.x - (me.viewport[2] - RV.Hero.size.w) / 2;
+    me.viewport[1] = location.y - (me.viewport[3] - RV.Hero.size.h) / 2;
   };
 
   me.init = function (canvas) {
