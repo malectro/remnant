@@ -12,6 +12,11 @@
     y: 0
   };
 
+  me.mapLocation = {
+    x: 0,
+    y: 0
+  };
+
   me.size = {
     h: 50,
     w: 20
@@ -183,6 +188,19 @@
       return true;
     }
     return false;
+  };
+
+  me.warped = function () {
+    var warp = RV.Map.currentWarp;
+    if (warp && this.location.x > warp.x - warp.bend
+        && this.location.x + this.size.w < warp.x + warp.bend) {
+      return true;
+    }
+    return false;
+  };
+
+  me.warpLocation = function () {
+    return this.location;
   };
 
 }());

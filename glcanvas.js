@@ -384,11 +384,12 @@
   }
 
   function _drawBlock(block) {
-    var textureBit = (block.image) ? '1' : '0';
+    var textureBit = (block.image) ? '1' : '0',
+        location = block.warpLocation();
 
 
     if (block.image) {
-      _drawTexture(_textureize(block), block.location.x - me.viewport[0], block.location.y - me.viewport[1], block.size.w, block.size.h);
+      _drawTexture(_textureize(block), location.x - me.viewport[0], location.y - me.viewport[1], block.size.w, block.size.h);
     }
   }
 

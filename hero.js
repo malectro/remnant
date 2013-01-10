@@ -82,5 +82,47 @@
     RV.Map.addBlock(me);
   };
 
+  me.warped = function () {
+    return false;
+  };
+
+  me.intersects = function (block) {
+    if (block.warped()) {
+      return false;
+    }
+    return RV.Block.intersects.call(this, block);
+  };
+
+  me.warpLocation = function () {
+    var warp = RV.Map.currentWarp,
+        location;
+
+    if (warp && this.location.x > warp.x) {
+      location = {
+        x: this.location.x - warp.bend,
+        y: this.location.y
+      };
+    }
+    else {
+      location = this.location;
+    }
+
+    return location;
+  };
+
+  me.tick = function (delta) {
+    var warp = RV.Map.currentWarp,
+        before = this.location.x;
+
+    RV.Block.tick.call(this, delta);
+
+    if (warp && before < warp.x && this.location.x > warp.x) {
+      this.location.x += warp.bend;
+    }
+    else if (warp && before > warp.x && this.location.x < warp.x) {
+      this.location.x -= warp.bend;
+    }
+  };
+
 }());
 
