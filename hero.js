@@ -48,6 +48,7 @@
 
   me.init = function () {
     RV.Controller.listen('left', 'down', function () {
+      me.dir = -1;
       me.moving = -RUN_SPEED;
       me.friction = RUN_FRICTION;
     });
@@ -59,6 +60,7 @@
     });
 
     RV.Controller.listen('right', 'down', function () {
+      me.dir = 1;
       me.moving = RUN_SPEED;
       me.friction = RUN_FRICTION;
     });
@@ -76,6 +78,10 @@
     });
     RV.Controller.listen('jump', 'up', function () {
       me.jumping = false;
+    });
+
+    RV.Controller.listen('warp', 'down', function () {
+      RV.Map.warp(me.dir * 100 + me.location.x);
     });
 
     // hero will be in his own framebuffer

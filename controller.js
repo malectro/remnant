@@ -4,7 +4,7 @@
       EVENT_INTERVAL = 20,
 
       _events = [
-        'left', 'up', 'down', 'right', 'jump'
+        'left', 'up', 'down', 'right', 'jump', 'warp'
       ],
 
       _eventHash = {},
@@ -15,10 +15,12 @@
         '38': 'up',
         '39': 'right',
         '40': 'down',
-        '32': 'jump'
+        '32': 'jump',
+        '16': 'warp'
       };
 
   function _keydown(e) {
+    console.log(e.which);
     if (me.fire(_pcKeys[e.which], 'down')) {
       e.preventDefault();
     }

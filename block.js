@@ -40,6 +40,9 @@
   // is the block animated?
   me.isSprite = false;
 
+  // direction this block is facing
+  me.dir = 1;
+
   // the block's texture
   me.image = new Image;
   me.image.src = 'test.png';
