@@ -8,7 +8,7 @@
 
   var _testBlocks = [
     [0, 400, 1000, 30, true],
-    [410, 0, 170, 170, false]
+    [410, 0, 120, 170, false]
   ];
 
   me.fg_objects = [

@@ -290,9 +290,10 @@
 
   var _hudWrite = _.throttle(RV.Hud.write, 200);
 
-  function _drawTexture(texture, x, y, w, h, warped) {
+  function _drawTexture(texture, x, y, w, h, warped, dir) {
     me.Transform.push();
 
+    dir = dir || 1;
     warped = (warped && RV.Map.currentWarp) ? 1 : 0;
 
     _loadDefaultShaders(1, me.Transform.count + 1, warped);
@@ -302,8 +303,11 @@
 
     _ctx.vertexAttribPointer(_shaderProgram.vertexPositionAttribute, 4, _ctx.FLOAT, false, 0, 0);
 
-
     me.Transform.translate(x, y);
+    if (dir < 0) {
+      me.Transform.translate(w, 0);
+      me.Transform.scale(dir, 1);
+    }
     me.Transform.scale(w, h);
 
     if (warped) {
@@ -347,7 +351,7 @@
 
 
     if (block.image) {
-      _drawTexture(_textureize(block), location.x - me.viewport[0], location.y - me.viewport[1], block.size.w, block.size.h);
+      _drawTexture(_textureize(block), location.x - me.viewport[0], location.y - me.viewport[1], block.size.w, block.size.h, false, block.dir);
     }
   }
 
