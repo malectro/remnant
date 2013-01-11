@@ -7,15 +7,35 @@
   me.currentWarp = null;
 
   var _testBlocks = [
-    [0, 300, 1000, 30, true],
-    [100, 25, 10, 75, false],
-    [200, 70, 50, 10, true],
-    [500, 0, 10, 400, false],
-    [300, 500, 600, 10, false],
-    [600, 480, 20, 10, true],
-    [630, 460, 20, 10, true],
-    [600, 430, 20, 10, true]
+    [0, 400, 1000, 30, true],
+    [410, 0, 170, 170, false]
   ];
+
+  me.fg_objects = [
+    {
+      src: 'assets/wall.png',
+      w: 1024,
+      h: 1536,
+      x: 200,
+      y: 0
+    }
+  ];
+
+  me.fg = {
+    src: 'assets/fg-grave.png',
+    w: 2048,
+    h: 1536,
+    x: -300,
+    y: 0
+  };
+
+  me.bg = {
+    src: 'assets/bg-forest.png',
+    w: 2048,
+    h: 1536,
+    x: 0,
+    y: 0
+  };
 
   me.load = function () {
     _testBlocks.forEach(function (block) {
@@ -32,6 +52,18 @@
       me.addBlock(block2);
     });
   };
+
+  me.addImageToGround = function (ground) {
+    ground.image = new Image;
+    ground.image.src = ground.src;
+    ground.w = ground.w / 2;
+    ground.h = ground.h / 2;
+  };
+  me.addImageToGround(me.bg);
+  me.addImageToGround(me.fg);
+  me.fg_objects.forEach(function (object) {
+    me.addImageToGround(object);
+  });
 
   me.getBlocksInViewport = function (viewport) {
     return me.blocks;

@@ -1,11 +1,11 @@
 (function () {
   var me = RV.Block = {},
 
-      GRAVITY = 400,
+      GRAVITY = 800,
       FRICTION = 0.0001,
       MIN_VELOCITY = 5,
-      TERMINAL_VELOCITY = 400,
-      TERMINAL_VELOCITY_X = 100;
+      TERMINAL_VELOCITY = 800,
+      TERMINAL_VELOCITY_X = 200;
 
   me.location = {
     x: 0,

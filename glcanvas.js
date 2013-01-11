@@ -4,7 +4,7 @@
       VIEWPORT_PADDING = 100,
       SHADERS = ['2d.frag', '2d.vert'],
       RESOLUTION_X = 1024,
-      RESOLUTION_Y = 1024,
+      RESOLUTION_Y = 512,
 
       OPTIONS = {
         antialias: false,
@@ -269,11 +269,15 @@
       return texture;
   }
 
+  function _imgIsMippy(img) {
+    return _.powerOf2(img.width) && _.powerOf2(img.height);
+  }
+
   function _textureize(block) {
     var texture = block.texture;
 
     if (!texture) {
-      texture = _texture(_.powerOf2(block.image.width) && _.powerOf2(block.image.height));
+      texture = _texture(_imgIsMippy(block.image));
 
       _ctx.texImage2D(_ctx.TEXTURE_2D, 0, _ctx.RGBA, _ctx.RGBA, _ctx.UNSIGNED_BYTE, block.image);
       block.texture = texture;
@@ -322,6 +326,21 @@
     me.Transform.pop();
   }
 
+  function _drawGround(ground, parallax) {
+    if (!ground.texture) {
+      ground.texture = _texture(_imgIsMippy(ground.image));
+      _ctx.texImage2D(_ctx.TEXTURE_2D, 0, _ctx.RGBA, _ctx.RGBA, _ctx.UNSIGNED_BYTE, ground.image);
+    }
+
+    _drawTexture(ground.texture, ground.x - me.viewport[0] * parallax, ground.y - me.viewport[1] * parallax, ground.w, ground.h);
+  }
+
+  function _drawGrounds(grounds, parallax) {
+    for (var i = 0, l = grounds.length; i < l; i++) {
+      _drawGround(grounds[i], parallax);
+    }
+  }
+
   function _drawBlock(block) {
     var textureBit = (block.image) ? '1' : '0',
         location = block.warpLocation();
@@ -361,7 +380,10 @@
     _ctx.clear(_ctx.COLOR_BUFFER_BIT | _ctx.DEPTH_BUFFER_BIT);
     _ctx.viewport(0, 0, me.viewport[2], me.viewport[3]);
 
-    _drawBlocks(blocks, delta);
+    //_drawBlocks(blocks, delta);
+    _drawGround(RV.Map.bg, 0.5);
+    _drawGround(RV.Map.fg, 1.0);
+    _drawGrounds(RV.Map.fg_objects, 1.0);
 
     //_ctx.bindTexture(_ctx.TEXTURE_2D, _preScreenTexture);
     //_ctx.generateMipmap(_ctx.TEXTURE_2D);

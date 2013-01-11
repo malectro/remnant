@@ -2,10 +2,10 @@
   var me = RV.Hero = _.create(RV.Block),
 
       RUN_FRICTION = 0.9,
-      RUN_SPEED = 300,
+      RUN_SPEED = 900,
       STOP_FRICTION = 0,
-      JUMP_SPEED = -10000,
-      FLOAT_SPEED = -100;
+      JUMP_SPEED = -20000,
+      FLOAT_SPEED = -200;
 
   me.location = {
     x: 0,
@@ -81,7 +81,7 @@
     });
 
     RV.Controller.listen('warp', 'down', function () {
-      RV.Map.warp(me.dir * 50 + me.location.x);
+      RV.Map.warp(me.dir * 200 + me.location.x + me.size.w / 2);
     });
 
     // hero will be in his own framebuffer

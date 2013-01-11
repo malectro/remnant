@@ -7,8 +7,8 @@
   me.squeeze = 0;
   me.createdAt = 0;
   me.factor = 0;
-  me.bendTo = 50;
-  me.squeezeTo = 25;
+  me.bendTo = 150;
+  me.squeezeTo = 50;
   me.attack = 500;
   me.sustain = 5000;
   me.healthyLife = 11000;

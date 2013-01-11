@@ -42,8 +42,10 @@
               vec2 sampleCoords;
               float diff;
               float bendDiameter = uBendRadius * 2.0;
+              float squeezeDiameter = uSqueezeRadius * 2.0;
               float left = uBendCenter - uBendRadius;
               float right = uBendCenter + uBendRadius;
+              float rightSqueeze = left + squeezeDiameter;
 
               if (vTextureCoord.x < left) {
                 sampleCoords = vTextureCoord.xy;
@@ -53,13 +55,13 @@
                 diff = asin(diff / uSqueezeRadius) * bendDiameter / M_PI + left;
                 sampleCoords = vec2(diff, vTextureCoord.y);
               }
-              else if (vTextureCoord.x < left + uSqueezeRadius * 2.0) {
-                diff = uBendCenter - vTextureCoord.x;
+              else if (vTextureCoord.x < rightSqueeze) {
+                diff = rightSqueeze - vTextureCoord.x;
                 diff = right - asin(diff / uSqueezeRadius) * bendDiameter / M_PI;
                 sampleCoords = vec2(diff, vTextureCoord.y);
               }
               else {
-                sampleCoords = vec2(vTextureCoord.x + uBendRadius, vTextureCoord.y);
+                sampleCoords = vec2(vTextureCoord.x - squeezeDiameter + bendDiameter, vTextureCoord.y);
               }
 
               gl_FragColor = texture2D(uSampler, sampleCoords);
