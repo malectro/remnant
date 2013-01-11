@@ -20,7 +20,6 @@
       };
 
   function _keydown(e) {
-    console.log(e.which);
     if (me.fire(_pcKeys[e.which], 'down')) {
       e.preventDefault();
     }

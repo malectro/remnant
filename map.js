@@ -7,7 +7,7 @@
   me.currentWarp = null;
 
   var _testBlocks = [
-    [0, 100, 400, 30, true],
+    [0, 300, 1000, 30, true],
     [100, 25, 10, 75, false],
     [200, 70, 50, 10, true],
     [500, 0, 10, 400, false],

@@ -13,8 +13,8 @@
   };
 
   me.size = {
-    h: 30,
-    w: 20
+    h: 245,
+    w: 204
   };
 
   me.velocity = {
@@ -24,7 +24,7 @@
 
   me.isStatic = false;
 
-  me.setSrc('discoghost.gif');
+  me.setSrc('assets/ghost2.png');
 
   me.resolveInputs = function (delta) {
     if (me.jumping) {
@@ -81,7 +81,7 @@
     });
 
     RV.Controller.listen('warp', 'down', function () {
-      RV.Map.warp(me.dir * 100 + me.location.x);
+      RV.Map.warp(me.dir * 50 + me.location.x);
     });
 
     // hero will be in his own framebuffer
