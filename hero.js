@@ -24,7 +24,7 @@
 
   me.isStatic = false;
 
-  me.setSrc('assets/ghost2.png');
+  me.setSrc('assets/ghost.png');
 
   me.resolveInputs = function (delta) {
     if (me.jumping) {
